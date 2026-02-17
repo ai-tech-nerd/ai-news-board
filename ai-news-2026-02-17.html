@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Detective Board - February 17, 2026</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e8e8e8; }
+        .cork-board { background: repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(139,90,43,0.1) 50px, rgba(139,90,43,0.1) 51px), linear-gradient(135deg, #2d2d44 0%, #1f1f35 100%); padding: 20px; min-height: 100vh; }
+        .header { text-align: center; margin-bottom: 25px; padding: 18px; background: rgba(0,0,0,0.5); border: 2px solid #c41e3a; border-radius: 5px; }
+        .header h1 { color: #c41e3a; font-size: 2em; text-transform: uppercase; letter-spacing: 3px; }
+        .header .subtitle { color: #ffd700; margin-top: 8px; }
+        .header .date { color: #888; font-size: 0.85em; margin-top: 4px; }
+        .filter-bar { background: rgba(0,0,0,0.5); padding: 12px; margin-bottom: 18px; border-radius: 5px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-bar span { color: #ffd700; }
+        .filter-btn { background: #333; color: #fff; border: 1px solid #555; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.75em; }
+        .filter-btn:hover, .filter-btn.active { background: #c41e3a; border-color: #c41e3a; }
+        .board-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; padding: 15px; max-width: 1500px; margin: 0 auto; }
+        .story-card { background: #fffef0; color: #333; padding: 16px; border-radius: 3px; box-shadow: 5px 5px 15px rgba(0,0,0,0.4); transform: rotate(var(--rotation, 0deg)); position: relative; transition: all 0.3s; }
+        .story-card:hover { transform: rotate(0deg) scale(1.03); z-index: 50; }
+        .story-card.hidden { display: none; }
+        .story-card::before { content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; background: radial-gradient(circle at 30% 30%, #ff6b6b, #c41e3a); border-radius: 50%; }
+        .story-number { position: absolute; top: 8px; right: 8px; background: #c41e3a; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
+        .story-card h3 { color: #1a1a2e; font-size: 0.95em; margin-bottom: 6px; padding-right: 28px; border-bottom: 2px solid #c41e3a; padding-bottom: 5px; }
+        .story-card .company { display: inline-block; background: var(--company-color, #333); color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; margin-bottom: 6px; }
+        .story-card p { font-size: 0.8em; line-height: 1.4; margin-bottom: 6px; }
+        .key-fact { background: #fff3cd; border-left: 3px solid #ffc107; padding: 5px; margin: 6px 0; font-size: 0.75em; }
+        .sources { font-size: 0.7em; color: #666; margin: 5px 0; }
+        .connections { margin-top: 10px; padding-top: 6px; border-top: 1px dashed #999; }
+        .connections h4 { color: #c41e3a; font-size: 0.75em; margin-bottom: 4px; }
+        .connection-tag { display: inline-block; padding: 2px 5px; border-radius: 8px; font-size: 0.65em; margin: 1px; border: 1px solid #ccc; }
+        .connection-tag.theme-agents { background: #d4edda; border-color: #28a745; }
+        .connection-tag.theme-money { background: #cce5ff; border-color: #007bff; }
+        .connection-tag.theme-competition { background: #f8d7da; border-color: #dc3545; }
+        .connection-tag.theme-agi { background: #e2d5f1; border-color: #6f42c1; }
+        .connection-tag.theme-enterprise { background: #fff3cd; border-color: #ffc107; }
+        .share-btn { display: block; width: 100%; margin-top: 10px; padding: 8px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: bold; }
+        .share-btn:hover { background: #a01830; }
+        .legend { background: rgba(0,0,0,0.7); padding: 12px; border-radius: 5px; margin: 18px auto; max-width: 1100px; }
+        .legend h2 { color: #ffd700; margin-bottom: 10px; text-align: center; font-size: 1em; }
+        .legend-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8em; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+        .analysis-section { background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 1100px; border: 2px solid #c41e3a; }
+        .analysis-section h2 { color: #c41e3a; margin-bottom: 12px; text-align: center; }
+        .insight { background: rgba(255,255,255,0.05); margin: 10px 0; border-left: 4px solid #ffd700; border-radius: 0 5px 5px 0; }
+        .insight-header { padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; }
+        .insight-header h3 { color: #ffd700; font-size: 0.95em; }
+        .expand-icon { transition: transform 0.3s; }
+        .insight.expanded .expand-icon { transform: rotate(180deg); }
+        .insight-summary { padding: 0 12px 10px; font-size: 0.9em; }
+        .insight-details { padding: 0 12px 12px; border-top: 1px solid #444; }
+        .insight-details ul { padding-left: 18px; font-size: 0.85em; }
+        .footer { text-align: center; padding: 15px; color: #666; font-size: 0.85em; }
+
+        /* Share Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1a1a2e; border: 2px solid #c41e3a; border-radius: 10px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { color: #ffd700; font-size: 1.2em; }
+        .modal-close { background: none; border: none; color: #fff; font-size: 1.5em; cursor: pointer; }
+        .modal-body { padding: 20px; }
+        .platform-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .platform-btn { flex: 1; padding: 10px; border: 2px solid #444; background: transparent; color: #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .platform-btn.active { border-color: #c41e3a; background: rgba(196,30,58,0.2); }
+        .platform-btn.linkedin { border-color: #0077b5; }
+        .platform-btn.linkedin.active { background: rgba(0,119,181,0.2); }
+        .platform-btn.x { border-color: #000; }
+        .platform-btn.x.active { background: rgba(255,255,255,0.1); }
+        .length-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .length-btn { padding: 8px 15px; border: 1px solid #555; background: transparent; color: #aaa; cursor: pointer; border-radius: 3px; font-size: 0.85em; }
+        .length-btn.active { border-color: #ffd700; color: #ffd700; }
+        .post-preview { background: #0d0d1a; border: 1px solid #333; border-radius: 8px; padding: 15px; min-height: 200px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        .post-preview.linkedin { border-left: 3px solid #0077b5; }
+        .post-preview.x { border-left: 3px solid #fff; }
+        .post-headline { font-weight: bold; font-size: 1.1em; margin-bottom: 10px; color: #fff; }
+        .post-intro { margin-bottom: 10px; color: #ccc; }
+        .post-news { margin-bottom: 10px; color: #aaa; }
+        .post-implications { margin: 10px 0; padding-left: 0; list-style: none; }
+        .post-implications li { margin: 5px 0; color: #bbb; }
+        .post-implications li::before { content: "→ "; color: #ffd700; }
+        .post-cta { margin-top: 10px; color: #ffd700; font-style: italic; }
+        .post-hashtags { margin-top: 10px; color: #6b8afd; font-size: 0.9em; }
+        .post-source { margin-top: 10px; color: #888; font-size: 0.85em; word-break: break-all; }
+        .image-toggle { display: flex; gap: 8px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .toggle-label { color: #ffd700; font-size: 0.9em; }
+        .image-btn { padding: 6px 12px; border: 1px solid #555; background: transparent; color: #aaa; cursor: pointer; border-radius: 3px; font-size: 0.8em; }
+        .image-btn.active { border-color: #28a745; color: #28a745; }
+        .image-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .image-preview-container { margin: 15px 0; text-align: center; background: #111; border-radius: 8px; padding: 15px; }
+        .image-preview-container img { max-width: 100%; border-radius: 5px; }
+        .generate-ai-btn { margin-top: 10px; padding: 10px 20px; background: #6f42c1; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .generate-ai-btn:hover { background: #5a32a3; }
+        .ai-loading { color: #ffd700; margin-top: 10px; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .copy-btn { flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; }
+        .copy-btn:hover { background: #218838; }
+        .copy-btn.copied { background: #ffd700; color: #333; }
+        .download-btn { flex: 1; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; }
+        .download-btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="cork-board">
+        <div class="header">
+            <h1>🔍 AI Intelligence Board</h1>
+            <div class="subtitle">TOP 10 STORIES - CROSS-REFERENCE ANALYSIS</div>
+            <div class="date">February 17, 2026 | 📧 8 emails + 🌐 20 web articles</div>
+        </div>
+
+        <div class="filter-bar">
+            <span>🏷️ Filter:</span>
+            <button class="filter-btn active" onclick="filterByTheme('all')">All</button>
+            <button class="filter-btn" onclick="filterByTheme('agents')">Agents</button>
+            <button class="filter-btn" onclick="filterByTheme('money')">Funding</button>
+            <button class="filter-btn" onclick="filterByTheme('competition')">Competition</button>
+            <button class="filter-btn" onclick="filterByTheme('agi')">AGI</button>
+            <button class="filter-btn" onclick="filterByTheme('enterprise')">Enterprise</button>
+        </div>
+
+        <div class="board-container">
+            <div class="story-card" style="--rotation: -1.5deg;" data-story-id="e0111fbc" data-themes="agents,competition">
+                <div class="story-number">1</div>
+                <span class="company" style="--company-color: #00a67e;">OpenAI</span>
+                <h3>OpenAI hires OpenClaw creator for personal AI agents</h3>
+                <p>OpenAI hired Peter Steinberger, creator of the viral OpenClaw personal AI assistant, to lead their next generation of personal agents. OpenClaw will become an independent foundation while remaining open source under OpenAI's sponsorship.</p>
+                <div class="key-fact"><strong>KEY:</strong> OpenClaw went from launch to acquisition in just 8 weeks</div>
+                <div class="sources">📰 AI Breakfast, The Deep View, Superhuman</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-agents">AI Agents</span><span class="connection-tag theme-competition">Market Competition</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('e0111fbc')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: 0.0deg;" data-story-id="a3a6a4e9" data-themes="enterprise,competition">
+                <div class="story-number">2</div>
+                <span class="company" style="--company-color: #e44d26;">Anthropic</span>
+                <h3>Pentagon threatens Anthropic over AI military restrictions</h3>
+                <p>The Pentagon may designate Anthropic a 'supply chain risk' over the company's refusal to allow unrestricted military use of Claude. This would force all defense contractors to cut ties with the company.</p>
+                <div class="key-fact"><strong>KEY:</strong> Claude is currently the only AI on Pentagon's classified systems</div>
+                <div class="sources">📰 The Rundown AI, The Deep View, Google Alerts</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-enterprise">Enterprise & B2B</span><span class="connection-tag theme-competition">Market Competition</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('a3a6a4e9')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: 1.5deg;" data-story-id="bf12d855" data-themes="agi">
+                <div class="story-number">3</div>
+                <span class="company" style="--company-color: #00a67e;">OpenAI</span>
+                <h3>GPT-5.2 discovers new physics theorem autonomously</h3>
+                <p>OpenAI's GPT-5.2 independently discovered a mathematical formula in particle physics, proving an existing answer was wrong and proposing the correct solution. The AI wrote a formal proof in 12 hours, verified by physicists from Harvard, Cambridge, and Princeton.</p>
+                <div class="key-fact"><strong>KEY:</strong> The AI spent 12 hours autonomously writing and verifying a mathematical proof</div>
+                <div class="sources">📰 AI Breakfast, The Rundown AI</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-agi">AGI & Research</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('bf12d855')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: 3.0deg;" data-story-id="8f7f3186" data-themes="money,competition">
+                <div class="story-number">4</div>
+                <span class="company" style="--company-color: #333333;">Adani Group</span>
+                <h3>India attracts $200B+ AI infrastructure investment by 2028</h3>
+                <p>India launched a bid to attract over $200 billion in AI infrastructure investment by 2028, with Adani pledging $100 billion specifically for AI data centers. The country is positioning itself as a major player in the global AI race.</p>
+                <div class="key-fact"><strong>KEY:</strong> $200 billion target investment by 2028</div>
+                <div class="sources">📰 TechCrunch</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-money">Funding & Revenue</span><span class="connection-tag theme-competition">Market Competition</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('8f7f3186')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: -3.0deg;" data-story-id="dc58c464" data-themes="money,competition">
+                <div class="story-number">5</div>
+                <span class="company" style="--company-color: #333333;">Multiple</span>
+                <h3>17 US AI companies raise $100M+ in 2026 already</h3>
+                <p>Despite being only 47 days into 2026, already 17 US-based AI companies have raised $100 million or more, indicating unprecedented investment momentum in the AI sector.</p>
+                <div class="key-fact"><strong>KEY:</strong> 17 companies raised $100M+ in just 47 days</div>
+                <div class="sources">📰 TechCrunch</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-money">Funding & Revenue</span><span class="connection-tag theme-competition">Market Competition</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('dc58c464')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: -1.5deg;" data-story-id="b0c0e0e1" data-themes="enterprise,agents">
+                <div class="story-number">6</div>
+                <span class="company" style="--company-color: #333333;">Infosys</span>
+                <h3>Infosys partners with Anthropic for enterprise AI agents</h3>
+                <p>Infosys announced a collaboration with Anthropic to develop and deliver advanced enterprise AI solutions for regulated industries including telecom, finance, and manufacturing. This partnership aims to create enterprise-grade AI agents.</p>
+                <div class="key-fact"><strong>KEY:</strong> Partnership targets regulated industries like finance and telecom</div>
+                <div class="sources">📰 Google Alerts, TechCrunch</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-enterprise">Enterprise & B2B</span><span class="connection-tag theme-agents">AI Agents</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('b0c0e0e1')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: 0.0deg;" data-story-id="881aaf13" data-themes="agents">
+                <div class="story-number">7</div>
+                <span class="company" style="--company-color: #333333;">Lemon</span>
+                <h3>Lemon launches voice-to-task AI agent</h3>
+                <p>Lemon released a free voice-to-task agent that lets users complete tasks like email writing, research, and document creation using just voice commands without typing or opening new tabs. The tool aims to eliminate hours of daily typing and tab switching.</p>
+                <div class="key-fact"><strong>KEY:</strong> Average worker types for 3 hours and switches tabs hundreds of times daily</div>
+                <div class="sources">📰 Superhuman</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-agents">AI Agents</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('881aaf13')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: 1.5deg;" data-story-id="6f48cc3f" data-themes="money">
+                <div class="story-number">8</div>
+                <span class="company" style="--company-color: #333333;">Emergent</span>
+                <h3>Emergent hits $100M ARR in 8 months</h3>
+                <p>India's vibe-coding startup Emergent claims to have reached over $100 million in annual recurring revenue just 8 months after launch, while also rolling out a mobile app for their coding platform.</p>
+                <div class="key-fact"><strong>KEY:</strong> $100M ARR achieved in 8 months</div>
+                <div class="sources">📰 TechCrunch</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-money">Funding & Revenue</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('6f48cc3f')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: 3.0deg;" data-story-id="26fbb1af" data-themes="competition">
+                <div class="story-number">9</div>
+                <span class="company" style="--company-color: #5046e5;">Cohere</span>
+                <h3>Cohere launches open multilingual AI models</h3>
+                <p>Cohere released a family of open multilingual models, expanding access to AI capabilities across different languages and potentially challenging the dominance of English-centric AI systems.</p>
+                <div class="key-fact"><strong>KEY:</strong> Models support multiple languages with open access</div>
+                <div class="sources">📰 TechCrunch</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-competition">Market Competition</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('26fbb1af')">📤 Share</button>
+            </div>
+        
+            <div class="story-card" style="--rotation: -3.0deg;" data-story-id="40bf1940" data-themes="competition">
+                <div class="story-number">10</div>
+                <span class="company" style="--company-color: #333333;">ByteDance</span>
+                <h3>ByteDance retreats after Seedance 2.0 Hollywood backlash</h3>
+                <p>ByteDance backpedaled on Seedance 2.0 after the AI video model turned Hollywood icons into what critics called 'clip art,' highlighting ongoing tensions between AI companies and the entertainment industry over content creation.</p>
+                <div class="key-fact"><strong>KEY:</strong> Hollywood icons were transformed into AI 'clip art'</div>
+                <div class="sources">📰 Ars Technica</div>
+                <div class="connections">
+                    <h4>🔗 Themes:</h4>
+                    <span class="connection-tag theme-competition">Market Competition</span>
+                </div>
+                <button class="share-btn" onclick="openShareModal('40bf1940')">📤 Share</button>
+            </div>
+        </div>
+
+        <div class="legend">
+            <h2>🏷️ THEMES</h2>
+            <div class="legend-grid"><div class="legend-item"><div class="legend-color" style="background:#d4edda;border:2px solid #28a745"></div><span>AI Agents</span></div><div class="legend-item"><div class="legend-color" style="background:#cce5ff;border:2px solid #007bff"></div><span>Funding & Revenue</span></div><div class="legend-item"><div class="legend-color" style="background:#f8d7da;border:2px solid #dc3545"></div><span>Market Competition</span></div><div class="legend-item"><div class="legend-color" style="background:#e2d5f1;border:2px solid #6f42c1"></div><span>AGI & Research</span></div><div class="legend-item"><div class="legend-color" style="background:#fff3cd;border:2px solid #ffc107"></div><span>Enterprise & B2B</span></div></div>
+        </div>
+
+        <div class="analysis-section">
+            <h2>🎯 INVESTIGATOR'S ANALYSIS</h2>
+            
+            <div class="insight expandable" data-related="e0111fbc,b0c0e0e1,881aaf13">
+                <div class="insight-header" onclick="toggleInsight(this)">
+                    <h3>The Agent Revolution is Accelerating</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="insight-summary">3 stories today. AI is moving from chat to autonomous action.</p>
+                <div class="insight-details" style="display: none;">
+                    <ul><li>OpenAI hires OpenClaw creator for personal AI agents</li><li>Infosys partners with Anthropic for enterprise AI agents</li><li>Lemon launches voice-to-task AI agent</li></ul>
+                </div>
+            </div>
+        
+            <div class="insight expandable" data-related="8f7f3186,dc58c464,6f48cc3f">
+                <div class="insight-header" onclick="toggleInsight(this)">
+                    <h3>Capital is Consolidating Around Winners</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="insight-summary">3 stories today. Revenue velocity trumps user growth.</p>
+                <div class="insight-details" style="display: none;">
+                    <ul><li>India attracts $200B+ AI infrastructure investment by 2028</li><li>17 US AI companies raise $100M+ in 2026 already</li><li>Emergent hits $100M ARR in 8 months</li></ul>
+                </div>
+            </div>
+        
+            <div class="insight expandable" data-related="bf12d855">
+                <div class="insight-header" onclick="toggleInsight(this)">
+                    <h3>The Path to AGI is Forking</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="insight-summary">1 stories today. Scaling vs world models vs self-improvement.</p>
+                <div class="insight-details" style="display: none;">
+                    <ul><li>GPT-5.2 discovers new physics theorem autonomously</li></ul>
+                </div>
+            </div>
+        
+            <div class="insight expandable" data-related="e0111fbc,a3a6a4e9,8f7f3186,dc58c464,26fbb1af,40bf1940">
+                <div class="insight-header" onclick="toggleInsight(this)">
+                    <h3>Competitive Dynamics are Shifting</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="insight-summary">6 stories today. Partnerships over building.</p>
+                <div class="insight-details" style="display: none;">
+                    <ul><li>OpenAI hires OpenClaw creator for personal AI agents</li><li>Pentagon threatens Anthropic over AI military restrictions</li><li>India attracts $200B+ AI infrastructure investment by 2028</li></ul>
+                </div>
+            </div>
+        
+            <div class="insight expandable" data-related="a3a6a4e9,b0c0e0e1">
+                <div class="insight-header" onclick="toggleInsight(this)">
+                    <h3>Enterprise is Where the Money Is</h3>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <p class="insight-summary">2 stories today. B2B beats consumer chatbots.</p>
+                <div class="insight-details" style="display: none;">
+                    <ul><li>Pentagon threatens Anthropic over AI military restrictions</li><li>Infosys partners with Anthropic for enterprise AI agents</li></ul>
+                </div>
+            </div>
+        
+        </div>
+
+        <div class="footer">
+            <p>Generated at 10:00 AM | Click 📤 Share on any story to post to LinkedIn or X</p>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📤 Share Story</h2>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="platform-toggle">
+                    <button class="platform-btn linkedin active" onclick="setPlatform('linkedin')">LinkedIn</button>
+                    <button class="platform-btn x" onclick="setPlatform('x')">X / Twitter</button>
+                </div>
+                <div class="length-toggle">
+                    <button class="length-btn active" onclick="setLength('full')">Full Post</button>
+                    <button class="length-btn" onclick="setLength('short')">Short Version</button>
+                </div>
+
+                <div class="image-toggle">
+                    <span class="toggle-label">📷 Image:</span>
+                    <button class="image-btn active" onclick="setImageType('none')">Text Only</button>
+                    <button class="image-btn" onclick="setImageType('card')">Share Card</button>
+                    <button class="image-btn" onclick="setImageType('ai')" id="aiImageBtn">AI Generated</button>
+                </div>
+
+                <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                    <img id="imagePreview" src="" alt="Share image preview">
+                    <button class="generate-ai-btn" id="generateAiBtn" onclick="generateAiImage()" style="display: none;">🎨 Generate AI Image</button>
+                    <div class="ai-loading" id="aiLoading" style="display: none;">⏳ Generating AI image...</div>
+                </div>
+
+                <div class="post-preview linkedin" id="postPreview"></div>
+
+                <div class="action-buttons">
+                    <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()">📋 Copy Text</button>
+                    <button class="download-btn" id="downloadBtn" onclick="downloadImage()" style="display: none;">⬇️ Download Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stories = [{"id": "e0111fbc", "title": "OpenAI hires OpenClaw creator for personal AI agents", "company": "OpenAI", "themes": ["agents", "competition"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "AI just shifted from chat to action - and it happened in 8 weeks", "headline_x": "Personal AI agents are eating the world", "why_it_matters": "If you're still thinking of AI as a chatbot, you're already behind the curve that's reshaping work itself.", "what_happened": "OpenAI acquired OpenClaw's creator after his personal AI agent went viral for actually completing tasks autonomously.", "implications": ["Consumer AI is pivoting from conversation to execution", "Open source agent frameworks become the new battleground", "Personal productivity tools face an extinction-level event"], "implications_short": ["AI shifted from chat to autonomous action", "Productivity tools facing extinction event"]}, "source_urls": ["https://techcrunch.com/2026/02/17/here-are-the-17-us-based-ai-companies-that-have-raised-100m-or-more-in-2026/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-e0111fbc.png", "share_card_filename": "card-e0111fbc.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "a3a6a4e9", "title": "Pentagon threatens Anthropic over AI military restrictions", "company": "Anthropic", "themes": ["enterprise", "competition"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "AI safety principles just collided with national security demands", "headline_x": "The Pentagon vs. AI ethics showdown is here", "why_it_matters": "This standoff will determine whether AI companies can maintain ethical boundaries or must bend to government demands.", "what_happened": "The Pentagon threatened to blacklist Anthropic as a 'supply chain risk' over Claude's military usage restrictions.", "implications": ["AI market could split between 'compliant' and 'principled' providers", "Defense contractors may prefer AI vendors with fewer restrictions", "Government pressure on AI safety guardrails is intensifying"], "implications_short": ["AI market splitting on ethics vs compliance", "Government pressure on AI safety increasing"]}, "source_urls": ["https://techcrunch.com/2026/02/17/as-ai-jitters-rattle-it-stocks-infosys-partners-with-anthropic-to-build-enterprise-grade-ai-agents/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-a3a6a4e9.png", "share_card_filename": "card-a3a6a4e9.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "bf12d855", "title": "GPT-5.2 discovers new physics theorem autonomously", "company": "OpenAI", "themes": ["agi"], "hashtags": ["#AGI", "#AIResearch", "#MachineLearning"], "share_content": {"headline_linkedin": "AI just proved human scientists wrong - and showed its work", "headline_x": "AI is now discovering physics we missed", "why_it_matters": "If AI can independently advance human knowledge, the entire research economy is about to be disrupted.", "what_happened": "GPT-5.2 discovered a new physics theorem, proved existing theory wrong, and wrote a formal proof in 12 hours.", "implications": ["AI transitions from research assistant to autonomous researcher", "Traditional academic research timelines become obsolete", "Human expertise shifts from discovery to validation and direction"], "implications_short": ["AI moved from assistant to autonomous researcher", "Academic research timelines just collapsed"]}, "source_urls": ["https://arstechnica.com/science/2026/02/dna-inspired-molecule-breaks-records-for-storing-solar-heat/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-bf12d855.png", "share_card_filename": "card-bf12d855.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "8f7f3186", "title": "India attracts $200B+ AI infrastructure investment by 2028", "company": "Adani Group", "themes": ["money", "competition"], "hashtags": ["#AIFunding", "#VentureCapital", "#AI"], "share_content": {"headline_linkedin": "The AI power center is shifting - and it's not to where you think", "headline_x": "India's $200B AI bet could reshape everything", "why_it_matters": "If you're planning AI infrastructure, the global compute landscape is about to fundamentally change.", "what_happened": "India launched a $200B bid for AI infrastructure investment, with Adani committing $100B for data centers alone.", "implications": ["AI computing power shifts from US-centric to multipolar", "Cloud costs and latency calculations need geographic rebalancing", "Talent and investment flows follow infrastructure placement"], "implications_short": ["AI computing power going multipolar", "Cloud economics about to shift globally"]}, "source_urls": ["https://techcrunch.com/2026/02/17/india-bids-to-attract-over-200b-in-ai-infrastructure-investment-by-2028/", "https://techcrunch.com/2026/02/17/adani-pledges-100b-for-ai-data-centers-as-india-seeks-bigger-role-in-global-ai/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-8f7f3186.png", "share_card_filename": "card-8f7f3186.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "dc58c464", "title": "17 US AI companies raise $100M+ in 2026 already", "company": "Multiple", "themes": ["money", "competition"], "hashtags": ["#AIFunding", "#VentureCapital", "#AI"], "share_content": {"headline_linkedin": "AI funding just hit bubble velocity - brace for impact", "headline_x": "17 AI companies got $100M+ in 47 days", "why_it_matters": "When capital moves this fast, market corrections follow - and they reshape entire industries.", "what_happened": "Seventeen US AI companies have already raised $100M+ rounds in the first 47 days of 2026.", "implications": ["AI valuations are entering unsustainable territory", "Market correction becomes increasingly likely", "Competition for AI talent and resources intensifies dramatically"], "implications_short": ["AI valuations hitting unsustainable levels", "Market correction risk rising rapidly"]}, "source_urls": ["https://techcrunch.com/2026/02/17/here-are-the-17-us-based-ai-companies-that-have-raised-100m-or-more-in-2026/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-dc58c464.png", "share_card_filename": "card-dc58c464.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "b0c0e0e1", "title": "Infosys partners with Anthropic for enterprise AI agents", "company": "Infosys", "themes": ["enterprise", "agents"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "Enterprise AI just got serious about regulated industries", "headline_x": "AI agents are entering regulated industries", "why_it_matters": "When AI hits regulated industries at scale, compliance costs and competitive dynamics shift permanently.", "what_happened": "Infosys partnered with Anthropic to build enterprise AI agents for finance, telecom, and manufacturing.", "implications": ["Regulated industries face AI-driven competitive pressure", "Compliance frameworks must adapt to autonomous agents", "Systems integrators become crucial AI distribution channel"], "implications_short": ["Regulated industries facing AI competitive pressure", "Systems integrators now crucial for AI deployment"]}, "source_urls": ["https://techcrunch.com/2026/02/17/as-ai-jitters-rattle-it-stocks-infosys-partners-with-anthropic-to-build-enterprise-grade-ai-agents/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-b0c0e0e1.png", "share_card_filename": "card-b0c0e0e1.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "881aaf13", "title": "Lemon launches voice-to-task AI agent", "company": "Lemon", "themes": ["agents"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "The keyboard-and-mouse era is ending faster than expected", "headline_x": "Voice agents are killing the keyboard", "why_it_matters": "If voice replaces typing, every interface you've built is about to become obsolete.", "what_happened": "Lemon launched a voice agent that completes tasks without typing or tab switching, targeting 3 hours of daily typing time.", "implications": ["Traditional UI/UX design becomes increasingly irrelevant", "Productivity software must rebuild around voice interfaces", "Keyboard skills lose economic value rapidly"], "implications_short": ["Traditional interfaces becoming obsolete", "Productivity software must rebuild for voice"]}, "source_urls": ["https://arstechnica.com/google/2026/02/tested-how-chromes-auto-browse-agent-handles-common-web-tasks/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-881aaf13.png", "share_card_filename": "card-881aaf13.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "6f48cc3f", "title": "Emergent hits $100M ARR in 8 months", "company": "Emergent", "themes": ["money"], "hashtags": ["#AIFunding", "#VentureCapital", "#AI"], "share_content": {"headline_linkedin": "A coding startup just rewrote the growth playbook in 8 months", "headline_x": "From zero to $100M ARR in 8 months", "why_it_matters": "When growth curves break this dramatically, entire markets are being redefined in real-time.", "what_happened": "Indian coding startup Emergent reached $100M ARR in just 8 months with their vibe-coding platform.", "implications": ["Traditional software development tools face existential threat", "AI-native coding platforms capture value at unprecedented speed", "Developer productivity expectations reset permanently upward"], "implications_short": ["Traditional coding tools facing existential threat", "Developer productivity expectations permanently reset"]}, "source_urls": ["https://techcrunch.com/2026/02/17/emergent-hits-100m-arr-eight-months-after-launch-rolls-out-mobile-app/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-6f48cc3f.png", "share_card_filename": "card-6f48cc3f.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "26fbb1af", "title": "Cohere launches open multilingual AI models", "company": "Cohere", "themes": ["competition"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "AI's English-first dominance is cracking", "headline_x": "Open multilingual AI models are here", "why_it_matters": "When AI breaks language barriers, global market dynamics shift away from English-first advantages.", "what_happened": "Cohere released open multilingual AI models, challenging English-centric AI system dominance.", "implications": ["Non-English markets gain direct AI access without translation layers", "Regional AI applications become viable without massive datasets", "English-first AI companies lose structural advantages"], "implications_short": ["Non-English markets gaining direct AI access", "English-first AI companies losing advantages"]}, "source_urls": ["https://techcrunch.com/2026/02/17/cohere-launches-a-family-of-open-multilingual-models/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-26fbb1af.png", "share_card_filename": "card-26fbb1af.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "40bf1940", "title": "ByteDance retreats after Seedance 2.0 Hollywood backlash", "company": "ByteDance", "themes": ["competition"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "AI video generation just hit its first cultural wall", "headline_x": "ByteDance learned why AI needs cultural guardrails", "why_it_matters": "When AI crosses cultural lines, public backlash can kill product momentum faster than technical failures.", "what_happened": "ByteDance pulled back Seedance 2.0 after it turned Hollywood icons into AI 'clip art,' sparking industry backlash.", "implications": ["AI video tools need sophisticated cultural sensitivity systems", "Celebrity rights management becomes critical for AI platforms", "Public perception can override technical capabilities in AI adoption"], "implications_short": ["AI video tools need cultural sensitivity systems", "Public perception can override technical capabilities"]}, "source_urls": ["https://arstechnica.com/tech-policy/2026/02/bytedance-backpedals-after-seedance-2-0-turned-hollywood-icons-into-ai-clip-art/"], "share_card_path": "/Users/Michael/Dropbox/_Claude Code Projects/ai-news-automation/share-cards/card-40bf1940.png", "share_card_filename": "card-40bf1940.png", "ai_image_path": null, "ai_image_filename": ""}];
+        const ctas = ["What's your take?", "Thoughts?", "How do you see this playing out?", "What does this mean for your work?", "Agree or disagree?", "Is this the right move?", "What's your read on this?"];
+        const hasReplicate = true;
+        let currentStory = null;
+        let currentPlatform = 'linkedin';
+        let currentLength = 'full';
+        let currentImageType = 'none';
+
+        // Detect if running on GitHub Pages or locally
+        const isGitHubPages = window.location.hostname.includes('github.io');
+
+        function getImageUrl(story, type) {
+            if (type === 'card') {
+                if (isGitHubPages && story.share_card_filename) {
+                    return 'share-cards/' + story.share_card_filename;
+                } else if (story.share_card_path) {
+                    return 'file://' + story.share_card_path;
+                }
+            } else if (type === 'ai') {
+                if (isGitHubPages && story.ai_image_filename) {
+                    return 'share-cards/' + story.ai_image_filename;
+                } else if (story.ai_image_path) {
+                    return 'file://' + story.ai_image_path;
+                }
+            }
+            return null;
+        }
+
+        function filterByTheme(theme) {
+            document.querySelectorAll('.story-card').forEach(card => {
+                card.classList.toggle('hidden', theme !== 'all' && !card.dataset.themes.includes(theme));
+            });
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function toggleInsight(header) {
+            const insight = header.parentElement;
+            const details = insight.querySelector('.insight-details');
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            insight.classList.toggle('expanded');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+            document.getElementById('copyBtn').textContent = '📋 Copy Text';
+            document.getElementById('copyBtn').classList.remove('copied');
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            currentImageType = 'none';
+        }
+
+        function setPlatform(platform) {
+            currentPlatform = platform;
+            document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.platform-btn.' + platform).classList.add('active');
+            document.getElementById('postPreview').className = 'post-preview ' + platform;
+            renderPost();
+        }
+
+        function setLength(length) {
+            currentLength = length;
+            document.querySelectorAll('.length-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPost();
+        }
+
+        function renderPost() {
+            if (!currentStory || !currentStory.share_content) return;
+            const sc = currentStory.share_content;
+            const hashtags = currentStory.hashtags || [];
+            const cta = ctas[Math.floor(Math.random() * ctas.length)];
+
+            const headline = currentPlatform === 'linkedin' ? sc.headline_linkedin : sc.headline_x;
+            const implications = currentLength === 'full' ? (sc.implications || []) : (sc.implications_short || []);
+
+            let html = `<div class="post-headline">${headline || currentStory.title}</div>`;
+            html += `<div class="post-intro">${sc.why_it_matters || ''}</div>`;
+
+            if (currentLength === 'full') {
+                html += `<div class="post-news">${sc.what_happened || ''}</div>`;
+            }
+
+            if (implications.length > 0) {
+                html += '<ul class="post-implications">';
+                implications.slice(0, 3).forEach(imp => {
+                    html += `<li>${imp}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            html += `<div class="post-cta">${cta}</div>`;
+
+            if (hashtags.length > 0) {
+                html += `<div class="post-hashtags">${hashtags.join(' ')}</div>`;
+            }
+
+            // Add source link
+            const sourceUrl = currentStory.source_urls && currentStory.source_urls[0] ? currentStory.source_urls[0] : '';
+            if (sourceUrl) {
+                html += `<div class="post-source">Link in comments ⤵️<br>${sourceUrl}</div>`;
+            }
+
+            document.getElementById('postPreview').innerHTML = html;
+        }
+
+        function copyToClipboard() {
+            if (!currentStory || !currentStory.share_content) return;
+            const sc = currentStory.share_content;
+            const hashtags = currentStory.hashtags || [];
+            const cta = document.querySelector('.post-cta')?.textContent || '';
+
+            const headline = currentPlatform === 'linkedin' ? sc.headline_linkedin : sc.headline_x;
+            const implications = currentLength === 'full' ? (sc.implications || []) : (sc.implications_short || []);
+
+            let text = (headline || currentStory.title) + '\n\n';
+            text += (sc.why_it_matters || '') + '\n\n';
+
+            if (currentLength === 'full' && sc.what_happened) {
+                text += sc.what_happened + '\n\n';
+            }
+
+            if (implications.length > 0) {
+                implications.slice(0, 3).forEach(imp => {
+                    text += '→ ' + imp + '\n';
+                });
+                text += '\n';
+            }
+
+            text += cta + '\n\n';
+
+            if (hashtags.length > 0) {
+                text += hashtags.join(' ') + '\n\n';
+            }
+
+            // Add source link
+            const sourceUrl = currentStory.source_urls && currentStory.source_urls[0] ? currentStory.source_urls[0] : '';
+            if (sourceUrl) {
+                text += 'Link in comments ⤵️\n' + sourceUrl;
+            }
+
+            navigator.clipboard.writeText(text.trim()).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Text';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function setImageType(type) {
+            currentImageType = type;
+            document.querySelectorAll('.image-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const container = document.getElementById('imagePreviewContainer');
+            const preview = document.getElementById('imagePreview');
+            const generateBtn = document.getElementById('generateAiBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const aiLoading = document.getElementById('aiLoading');
+
+            if (type === 'none') {
+                container.style.display = 'none';
+                downloadBtn.style.display = 'none';
+            } else if (type === 'card') {
+                container.style.display = 'block';
+                generateBtn.style.display = 'none';
+                aiLoading.style.display = 'none';
+                const cardUrl = getImageUrl(currentStory, 'card');
+                if (cardUrl) {
+                    preview.src = cardUrl;
+                    preview.style.display = 'block';
+                    downloadBtn.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                    downloadBtn.style.display = 'none';
+                }
+            } else if (type === 'ai') {
+                container.style.display = 'block';
+                const aiUrl = getImageUrl(currentStory, 'ai');
+                if (aiUrl) {
+                    preview.src = aiUrl;
+                    preview.style.display = 'block';
+                    generateBtn.style.display = 'none';
+                    downloadBtn.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                    generateBtn.style.display = hasReplicate && !isGitHubPages ? 'block' : 'none';
+                    downloadBtn.style.display = 'none';
+                    if (!hasReplicate && !isGitHubPages) {
+                        aiLoading.textContent = '⚠️ Replicate API not configured';
+                        aiLoading.style.display = 'block';
+                    } else if (isGitHubPages) {
+                        aiLoading.innerHTML = '💡 Run locally:<br><code style="background:#333;padding:4px 8px;border-radius:4px;font-size:0.85em;">python3 ai_news_gatherer.py --generate-ai-image ' + currentStory.id + '</code>';
+                        aiLoading.style.display = 'block';
+                    }
+                }
+            }
+        }
+
+        async function generateAiImage() {
+            if (!currentStory || !hasReplicate) return;
+
+            const generateBtn = document.getElementById('generateAiBtn');
+            const aiLoading = document.getElementById('aiLoading');
+            const preview = document.getElementById('imagePreview');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            generateBtn.style.display = 'none';
+            aiLoading.textContent = '⏳ Generating AI image... (this may take 30-60 seconds)';
+            aiLoading.style.display = 'block';
+
+            // In a real implementation, this would call a backend API
+            // For now, show a message about running the script
+            setTimeout(() => {
+                aiLoading.textContent = '💡 Run: python ai_news_gatherer.py --generate-ai-image ' + currentStory.id;
+                aiLoading.style.display = 'block';
+            }, 2000);
+        }
+
+        function downloadImage() {
+            if (!currentStory) return;
+
+            let imagePath = '';
+            if (currentImageType === 'card' && currentStory.share_card_path) {
+                imagePath = currentStory.share_card_path;
+            } else if (currentImageType === 'ai' && currentStory.ai_image_path) {
+                imagePath = currentStory.ai_image_path;
+            }
+
+            if (imagePath) {
+                // Create a link to open the file
+                const link = document.createElement('a');
+                link.href = 'file://' + imagePath;
+                link.download = 'share-image-' + currentStory.id + '.png';
+                link.click();
+            }
+        }
+
+        function openShareModal(storyId) {
+            currentStory = stories.find(s => s.id === storyId);
+            if (!currentStory) return;
+
+            // Reset to defaults
+            currentImageType = 'none';
+            document.querySelectorAll('.image-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.image-btn').classList.add('active');
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+
+            // Disable AI button if no Replicate
+            const aiBtn = document.getElementById('aiImageBtn');
+            if (!hasReplicate) {
+                aiBtn.disabled = true;
+                aiBtn.title = 'Replicate API not configured';
+            }
+
+            document.getElementById('shareModal').classList.add('active');
+            renderPost();
+        }
+
+        // Animate cards
+        document.querySelectorAll('.story-card').forEach((card, i) => {
+            card.style.opacity = '0';
+            setTimeout(() => { card.style.transition = 'all 0.4s'; card.style.opacity = '1'; }, i * 80);
+        });
+    </script>
+</body>
+</html>

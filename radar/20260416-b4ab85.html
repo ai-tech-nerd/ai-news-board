@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI EDGE: Radar Edition - April 16, 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .header-font { font-family: 'Space Grotesk', sans-serif; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 25px 50px -12px rgb(139 92 246 / 0.2); }
+        .card.hidden { display: none !important; }
+        .neon-text { text-shadow: 0 0 15px rgb(139 92 246), 0 0 30px rgb(139 92 246); }
+        .story-badge { background: linear-gradient(90deg, rgb(139 92 246), rgb(167 139 250)); }
+        .filter-btn.active { border-color: rgb(139 92 246) !important; color: rgb(167 139 250) !important; background: rgba(139, 92, 246, 0.1) !important; }
+        .tool-filter-btn.active { border-color: rgb(16 185 129) !important; color: rgb(52 211 153) !important; background: rgba(16, 185, 129, 0.1) !important; }
+        .insight.expanded .expand-icon { transform: rotate(180deg); }
+
+        /* Share Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #18181b; border: 1px solid rgba(139,92,246,0.3); border-radius: 24px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { color: #a78bfa; font-size: 1.1em; font-weight: 600; }
+        .modal-close { background: none; border: none; color: #71717a; font-size: 1.5em; cursor: pointer; }
+        .modal-close:hover { color: #fff; }
+        .modal-body { padding: 24px; }
+        .platform-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .platform-btn { flex: 1; padding: 10px; border: 1px solid #3f3f46; background: transparent; color: #a1a1aa; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 0.9em; }
+        .platform-btn.active { border-color: #8b5cf6; background: rgba(139,92,246,0.1); color: #c4b5fd; }
+        .platform-btn.linkedin.active { border-color: #0077b5; background: rgba(0,119,181,0.1); color: #38bdf8; }
+        .length-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .length-btn { padding: 8px 15px; border: 1px solid #3f3f46; background: transparent; color: #71717a; cursor: pointer; border-radius: 10px; font-size: 0.85em; }
+        .length-btn.active { border-color: #a78bfa; color: #a78bfa; }
+        .post-preview { background: #09090b; border: 1px solid #27272a; border-radius: 16px; padding: 16px; min-height: 180px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        .post-preview.linkedin { border-left: 3px solid #0077b5; }
+        .post-preview.x { border-left: 3px solid #fff; }
+        .post-headline { font-weight: bold; font-size: 1.05em; margin-bottom: 10px; color: #fff; }
+        .post-intro { margin-bottom: 10px; color: #a1a1aa; }
+        .post-news { margin-bottom: 10px; color: #71717a; }
+        .post-implications { margin: 10px 0; padding-left: 0; list-style: none; }
+        .post-implications li { margin: 4px 0; color: #a1a1aa; }
+        .post-implications li::before { content: "→ "; color: #a78bfa; }
+        .post-cta { margin-top: 10px; color: #a78bfa; font-style: italic; }
+        .post-hashtags { margin-top: 10px; color: #6366f1; font-size: 0.9em; }
+        .post-source { margin-top: 10px; color: #52525b; font-size: 0.85em; word-break: break-all; }
+        .image-toggle { display: flex; gap: 8px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .toggle-label { color: #a78bfa; font-size: 0.9em; }
+        .image-btn { padding: 6px 12px; border: 1px solid #3f3f46; background: transparent; color: #71717a; cursor: pointer; border-radius: 10px; font-size: 0.8em; }
+        .image-btn.active { border-color: #22c55e; color: #22c55e; }
+        .image-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .image-preview-container { margin: 15px 0; text-align: center; background: #09090b; border-radius: 16px; padding: 15px; }
+        .image-preview-container img { max-width: 100%; border-radius: 12px; }
+        .generate-ai-btn { margin-top: 10px; padding: 10px 20px; background: #7c3aed; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .generate-ai-btn:hover { background: #6d28d9; }
+        .ai-loading { color: #a78bfa; margin-top: 10px; font-size: 0.9em; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .copy-btn { flex: 1; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95em; font-weight: 600; }
+        .copy-btn:hover { background: #16a34a; }
+        .copy-btn.copied { background: #a78bfa; color: #fff; }
+        .download-btn { flex: 1; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95em; font-weight: 600; }
+        .download-btn:hover { background: #2563eb; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white">
+    <div class="bg-zinc-900 border-b border-zinc-800 px-8 py-3 flex items-center justify-between"><a href="https://www.michaelkristof.com" target="_blank" class="text-zinc-400 hover:text-violet-400 no-underline font-medium text-xs transition-colors">michaelkristof.com</a><a href="https://www.michaelkristof.com/ai-edge-newsletter/" target="_blank" class="bg-violet-600 hover:bg-violet-500 text-white no-underline font-semibold text-xs px-4 py-2 rounded-lg transition-colors">Subscribe for Free →</a></div>
+    <div class="max-w-7xl mx-auto">
+        <!-- HEADER -->
+        <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
+            <div class="px-8 py-5 flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-x-4">
+                    <div class="w-10 h-10 bg-violet-600 rounded-2xl flex items-center justify-center text-2xl">🔍</div>
+                    <div>
+                        <p class="header-font text-sm font-semibold text-violet-400 uppercase tracking-widest mb-0">AI EDGE</p>
+                        <h1 class="header-font text-3xl font-bold tracking-tighter text-white leading-none">Radar Edition</h1>
+                        <p class="text-zinc-500 text-xs mt-1">April 16, 2026</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-600 text-zinc-300 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors active" onclick="filterByTheme('all')">All</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('agents')">Agents</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('money')">Funding</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('competition')">Competition</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('agi')">AGI</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('enterprise')">Enterprise</button>
+    
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="p-8">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <div class="inline-flex items-center gap-x-3 bg-zinc-900 text-zinc-400 text-xs tracking-widest px-5 py-2 rounded-3xl">
+                        <i class="fa-solid fa-bolt-lightning"></i>
+                        <span>TOP 0 STORIES · LAST 24H</span>
+                    </div>
+                    <h2 class="header-font text-4xl font-bold tracking-tighter mt-3">What the AI world is talking about</h2>
+                </div>
+                <div class="flex items-center gap-x-2 bg-zinc-900 px-4 py-2 rounded-3xl border border-violet-500/30 text-sm">
+                    <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span class="font-medium text-emerald-400 text-xs">LIVE · 16 APR 2026</span>
+                </div>
+            </div>
+
+            <!-- STORIES GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                
+            </div>
+
+            <!-- LAUNCHES SECTION -->
+            
+
+            <!-- TOOLS SECTION -->
+            
+
+            <!-- SUBSCRIBER FOOTER --><div class="max-w-4xl mx-auto mb-8 mt-4"><div class="bg-zinc-900 border border-violet-500/30 rounded-2xl p-8 text-center"><p class="text-zinc-300 text-sm mb-5">Daily AI Insights By <a href="https://www.michaelkristof.com" target="_blank" class="text-violet-400 hover:text-violet-300 no-underline font-medium">Michael Kristof</a></p><a href="https://www.michaelkristof.com/ai-edge-newsletter/" target="_blank" class="inline-block bg-gradient-to-r from-violet-600 to-violet-500 text-white text-base font-bold px-8 py-4 rounded-xl no-underline hover:from-violet-500 hover:to-violet-400 transition-all shadow-lg shadow-violet-500/25">Subscribe to AI EDGE →</a><p class="text-white text-sm mt-5">Get this report in your inbox every weekday morning</p></div></div>
+        </div>
+    </div>
+
+    <!-- Subscriber version: no share modal -->
+    <div class="modal-overlay" id="shareModal" style="display:none!important">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📤 Share Story</h2>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="platform-toggle">
+                    <button class="platform-btn linkedin active" onclick="setPlatform('linkedin')">LinkedIn</button>
+                    <button class="platform-btn x" onclick="setPlatform('x')">X / Twitter</button>
+                </div>
+                <div class="length-toggle">
+                    <button class="length-btn active" onclick="setLength('full')">Full Post</button>
+                    <button class="length-btn" onclick="setLength('short')">Short Version</button>
+                </div>
+                <div class="image-toggle">
+                    <span class="toggle-label">Image:</span>
+                    <button class="image-btn active" onclick="setImageType('none')">Text Only</button>
+                    <button class="image-btn" onclick="setImageType('card')">Share Card</button>
+                    <button class="image-btn" onclick="setImageType('ai')" id="aiImageBtn">AI Generated</button>
+                </div>
+                <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                    <img id="imagePreview" src="" alt="Share image preview">
+                    <button class="generate-ai-btn" id="generateAiBtn" onclick="generateAiImage()" style="display: none;">🎨 Generate AI Image</button>
+                    <div class="ai-loading" id="aiLoading" style="display: none;">⏳ Generating AI image...</div>
+                </div>
+                <div class="post-preview linkedin" id="postPreview"></div>
+                <div class="action-buttons">
+                    <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()">📋 Copy Text</button>
+                    <button class="download-btn" id="downloadBtn" onclick="downloadImage()" style="display: none;">⬇️ Download Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stories = [];
+        const ctas = ["What's your take?", "Thoughts?", "How do you see this playing out?", "What does this mean for your work?", "Agree or disagree?", "Is this the right move?", "What's your read on this?"];
+        const hasReplicate = true;
+        let currentStory = null;
+        let currentPlatform = 'linkedin';
+        let currentLength = 'full';
+        let currentImageType = 'none';
+        const isGitHubPages = window.location.hostname.includes('github.io');
+
+        function getImageUrl(story, type) {
+            if (type === 'card') {
+                if (isGitHubPages && story.share_card_filename) return 'share-cards/' + story.share_card_filename;
+                else if (story.share_card_path) return 'file://' + story.share_card_path;
+            } else if (type === 'ai') {
+                if (isGitHubPages && story.ai_image_filename) return 'share-cards/' + story.ai_image_filename;
+                else if (story.ai_image_path) return 'file://' + story.ai_image_path;
+            }
+            return null;
+        }
+
+        function filterByTheme(theme) {
+            document.querySelectorAll('.story-card').forEach(card => {
+                card.classList.toggle('hidden', theme !== 'all' && !card.dataset.themes.includes(theme));
+            });
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function toggleInsight(header) {
+            const insight = header.parentElement;
+            const details = insight.querySelector('.insight-details');
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            insight.classList.toggle('expanded');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+            document.getElementById('copyBtn').textContent = '📋 Copy Text';
+            document.getElementById('copyBtn').classList.remove('copied');
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            currentImageType = 'none';
+        }
+
+        function setPlatform(platform) {
+            currentPlatform = platform;
+            document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.platform-btn.' + platform).classList.add('active');
+            document.getElementById('postPreview').className = 'post-preview ' + platform;
+            renderPost();
+        }
+
+        function setLength(length) {
+            currentLength = length;
+            document.querySelectorAll('.length-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPost();
+        }
+
+        function renderPost() {
+            if (!currentStory || !currentStory.share_content) return;
+            const sc = currentStory.share_content;
+            const hashtags = currentStory.hashtags || [];
+            const cta = ctas[Math.floor(Math.random() * ctas.length)];
+            const headline = currentPlatform === 'linkedin' ? sc.headline_linkedin : sc.headline_x;
+            const implications = currentLength === 'full' ? (sc.implications || []) : (sc.implications_short || []);
+            let html = `<div class="post-headline">${headline || currentStory.title}</div>`;
+            if (currentLength === 'full') html += `<div class="post-news">${sc.what_happened || ''}</div>`;
+            if (implications.length > 0) {
+                html += '<ul class="post-implications">';
+                implications.slice(0, 3).forEach(imp => { html += `<li>${imp}</li>`; });
+                html += '</ul>';
+            }
+            html += `<div class="post-intro">My Take: ${sc.why_it_matters || ''}</div>`;
+            html += `<div class="post-cta">${cta}</div>`;
+            if (hashtags.length > 0) html += `<div class="post-hashtags">${hashtags.join(' ')}</div>`;
+            const sourceUrl = currentStory.source_urls && currentStory.source_urls[0] ? currentStory.source_urls[0] : '';
+            if (sourceUrl) html += `<div class="post-source">Link in comments ⤵️<br>${sourceUrl}</div>`;
+            document.getElementById('postPreview').innerHTML = html;
+        }
+
+        function copyToClipboard() {
+            if (!currentStory || !currentStory.share_content) return;
+            const sc = currentStory.share_content;
+            const hashtags = currentStory.hashtags || [];
+            const cta = document.querySelector('.post-cta')?.textContent || '';
+            const headline = currentPlatform === 'linkedin' ? sc.headline_linkedin : sc.headline_x;
+            const implications = currentLength === 'full' ? (sc.implications || []) : (sc.implications_short || []);
+            let text = (headline || currentStory.title) + '\n\n';
+            if (currentLength === 'full' && sc.what_happened) text += sc.what_happened + '\n\n';
+            if (implications.length > 0) {
+                implications.slice(0, 3).forEach(imp => { text += '→ ' + imp + '\n'; });
+                text += '\n';
+            }
+            text += 'My Take: ' + (sc.why_it_matters || '') + '\n\n';
+            text += cta + '\n\n';
+            if (hashtags.length > 0) text += hashtags.join(' ') + '\n\n';
+            const sourceUrl = currentStory.source_urls && currentStory.source_urls[0] ? currentStory.source_urls[0] : '';
+            if (sourceUrl) text += 'Link in comments ⤵️\n' + sourceUrl;
+            navigator.clipboard.writeText(text.trim()).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = '📋 Copy Text'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+
+        function setImageType(type) {
+            currentImageType = type;
+            document.querySelectorAll('.image-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            const container = document.getElementById('imagePreviewContainer');
+            const preview = document.getElementById('imagePreview');
+            const generateBtn = document.getElementById('generateAiBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const aiLoading = document.getElementById('aiLoading');
+            if (type === 'none') { container.style.display = 'none'; downloadBtn.style.display = 'none'; }
+            else if (type === 'card') {
+                container.style.display = 'block'; generateBtn.style.display = 'none'; aiLoading.style.display = 'none';
+                const cardUrl = getImageUrl(currentStory, 'card');
+                if (cardUrl) { preview.src = cardUrl; preview.style.display = 'block'; downloadBtn.style.display = 'block'; }
+                else { preview.style.display = 'none'; downloadBtn.style.display = 'none'; }
+            } else if (type === 'ai') {
+                container.style.display = 'block';
+                const aiUrl = getImageUrl(currentStory, 'ai');
+                if (aiUrl) { preview.src = aiUrl; preview.style.display = 'block'; generateBtn.style.display = 'none'; downloadBtn.style.display = 'block'; }
+                else {
+                    preview.style.display = 'none';
+                    generateBtn.style.display = hasReplicate && !isGitHubPages ? 'block' : 'none';
+                    downloadBtn.style.display = 'none';
+                    if (!hasReplicate && !isGitHubPages) { aiLoading.textContent = '⚠️ Replicate API not configured'; aiLoading.style.display = 'block'; }
+                    else if (isGitHubPages) { aiLoading.innerHTML = '💡 Run locally:<br><code style="background:#27272a;padding:4px 8px;border-radius:8px;font-size:0.85em;">python3 ai_news_gatherer.py --generate-ai-image ' + currentStory.id + '</code>'; aiLoading.style.display = 'block'; }
+                }
+            }
+        }
+
+        async function generateAiImage() {
+            if (!currentStory || !hasReplicate) return;
+            document.getElementById('generateAiBtn').style.display = 'none';
+            const aiLoading = document.getElementById('aiLoading');
+            aiLoading.textContent = '⏳ Generating AI image...';
+            aiLoading.style.display = 'block';
+            setTimeout(() => { aiLoading.textContent = '💡 Run: python3 ai_news_gatherer.py --generate-ai-image ' + currentStory.id; }, 2000);
+        }
+
+        function downloadImage() {
+            if (!currentStory) return;
+            let imagePath = '';
+            if (currentImageType === 'card' && currentStory.share_card_path) imagePath = currentStory.share_card_path;
+            else if (currentImageType === 'ai' && currentStory.ai_image_path) imagePath = currentStory.ai_image_path;
+            if (imagePath) {
+                const link = document.createElement('a');
+                link.href = 'file://' + imagePath;
+                link.download = 'share-image-' + currentStory.id + '.png';
+                link.click();
+            }
+        }
+
+        function openShareModal(storyId) {
+            currentStory = stories.find(s => s.id === storyId);
+            if (!currentStory) return;
+            currentImageType = 'none';
+            document.querySelectorAll('.image-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.image-btn').classList.add('active');
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            const aiBtn = document.getElementById('aiImageBtn');
+            if (!hasReplicate) { aiBtn.disabled = true; aiBtn.title = 'Replicate API not configured'; }
+            document.getElementById('shareModal').classList.add('active');
+            renderPost();
+        }
+
+        function filterTools(category) {
+            document.querySelectorAll('.tool-item').forEach(item => {
+                item.style.display = (category === 'all' || item.dataset.toolCategory === category) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('.tool-filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Animate cards
+        document.querySelectorAll('.card').forEach((card, i) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => { card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'; card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, i * 100);
+        });
+    </script>
+</body>
+</html>

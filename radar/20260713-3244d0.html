@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI EDGE: Radar Edition - July 13, 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .header-font { font-family: 'Space Grotesk', sans-serif; }
+        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 25px 50px -12px rgb(139 92 246 / 0.2); }
+        .card.hidden { display: none !important; }
+        .neon-text { text-shadow: 0 0 15px rgb(139 92 246), 0 0 30px rgb(139 92 246); }
+        .story-badge { background: linear-gradient(90deg, rgb(139 92 246), rgb(167 139 250)); }
+        .filter-btn.active { border-color: rgb(139 92 246) !important; color: rgb(167 139 250) !important; background: rgba(139, 92, 246, 0.1) !important; }
+        .tool-filter-btn.active { border-color: rgb(16 185 129) !important; color: rgb(52 211 153) !important; background: rgba(16, 185, 129, 0.1) !important; }
+        .insight.expanded .expand-icon { transform: rotate(180deg); }
+
+        /* Share Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #18181b; border: 1px solid rgba(139,92,246,0.3); border-radius: 24px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { color: #a78bfa; font-size: 1.1em; font-weight: 600; }
+        .modal-close { background: none; border: none; color: #71717a; font-size: 1.5em; cursor: pointer; }
+        .modal-close:hover { color: #fff; }
+        .modal-body { padding: 24px; }
+        .platform-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .platform-btn { flex: 1; padding: 10px; border: 1px solid #3f3f46; background: transparent; color: #a1a1aa; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 0.9em; }
+        .platform-btn.active { border-color: #8b5cf6; background: rgba(139,92,246,0.1); color: #c4b5fd; }
+        .platform-btn.linkedin.active { border-color: #0077b5; background: rgba(0,119,181,0.1); color: #38bdf8; }
+        .length-toggle { display: flex; gap: 10px; margin-bottom: 15px; }
+        .length-btn { padding: 8px 15px; border: 1px solid #3f3f46; background: transparent; color: #71717a; cursor: pointer; border-radius: 10px; font-size: 0.85em; }
+        .length-btn.active { border-color: #a78bfa; color: #a78bfa; }
+        .post-preview { background: #09090b; border: 1px solid #27272a; border-radius: 16px; padding: 16px; min-height: 180px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        .post-preview.linkedin { border-left: 3px solid #0077b5; }
+        .post-preview.x { border-left: 3px solid #fff; }
+        .post-headline { font-weight: bold; font-size: 1.05em; margin-bottom: 10px; color: #fff; }
+        .post-intro { margin-bottom: 10px; color: #a1a1aa; }
+        .post-news { margin-bottom: 10px; color: #71717a; }
+        .post-implications { margin: 10px 0; padding-left: 0; list-style: none; }
+        .post-implications li { margin: 4px 0; color: #a1a1aa; }
+        .post-implications li::before { content: "→ "; color: #a78bfa; }
+        .post-cta { margin-top: 10px; color: #a78bfa; font-style: italic; }
+        .post-hashtags { margin-top: 10px; color: #6366f1; font-size: 0.9em; }
+        .post-source { margin-top: 10px; color: #52525b; font-size: 0.85em; word-break: break-all; }
+        .image-toggle { display: flex; gap: 8px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .toggle-label { color: #a78bfa; font-size: 0.9em; }
+        .image-btn { padding: 6px 12px; border: 1px solid #3f3f46; background: transparent; color: #71717a; cursor: pointer; border-radius: 10px; font-size: 0.8em; }
+        .image-btn.active { border-color: #22c55e; color: #22c55e; }
+        .image-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .image-preview-container { margin: 15px 0; text-align: center; background: #09090b; border-radius: 16px; padding: 15px; }
+        .image-preview-container img { max-width: 100%; border-radius: 12px; }
+        .generate-ai-btn { margin-top: 10px; padding: 10px 20px; background: #7c3aed; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .generate-ai-btn:hover { background: #6d28d9; }
+        .ai-loading { color: #a78bfa; margin-top: 10px; font-size: 0.9em; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .copy-btn { flex: 1; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95em; font-weight: 600; }
+        .copy-btn:hover { background: #16a34a; }
+        .copy-btn.copied { background: #a78bfa; color: #fff; }
+        .download-btn { flex: 1; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95em; font-weight: 600; }
+        .download-btn:hover { background: #2563eb; }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white">
+    <div class="bg-zinc-900 border-b border-zinc-800 px-8 py-3 flex items-center justify-between"><a href="https://www.michaelkristof.com" target="_blank" class="text-zinc-400 hover:text-violet-400 no-underline font-medium text-xs transition-colors">michaelkristof.com</a><a href="https://www.michaelkristof.com/ai-edge-newsletter/" target="_blank" class="bg-violet-600 hover:bg-violet-500 text-white no-underline font-semibold text-xs px-4 py-2 rounded-lg transition-colors">Subscribe for Free →</a></div>
+    <div class="max-w-7xl mx-auto">
+        <!-- HEADER -->
+        <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
+            <div class="px-8 py-5 flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-x-4">
+                    <div class="w-10 h-10 bg-violet-600 rounded-2xl flex items-center justify-center text-2xl">🔍</div>
+                    <div>
+                        <p class="header-font text-sm font-semibold text-violet-400 uppercase tracking-widest mb-0">AI EDGE</p>
+                        <h1 class="header-font text-3xl font-bold tracking-tighter text-white leading-none">Radar Edition</h1>
+                        <p class="text-zinc-500 text-xs mt-1">July 13, 2026</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-600 text-zinc-300 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors active" onclick="filterByTheme('all')">All</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('agents')">Agents</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('money')">Funding</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('competition')">Competition</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('agi')">AGI</button>
+                    <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-violet-500 hover:text-violet-400 transition-colors" onclick="filterByTheme('enterprise')">Enterprise</button>
+    
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <div class="p-8">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <div class="inline-flex items-center gap-x-3 bg-zinc-900 text-zinc-400 text-xs tracking-widest px-5 py-2 rounded-3xl">
+                        <i class="fa-solid fa-bolt-lightning"></i>
+                        <span>TOP 24 STORIES · LAST 24H</span>
+                    </div>
+                    <h2 class="header-font text-4xl font-bold tracking-tighter mt-3">What the AI world is talking about</h2>
+                </div>
+                <div class="flex items-center gap-x-2 bg-zinc-900 px-4 py-2 rounded-3xl border border-violet-500/30 text-sm">
+                    <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span class="font-medium text-emerald-400 text-xs">LIVE · 13 JUL 2026</span>
+                </div>
+            </div>
+
+            <!-- STORIES GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="9959dd39" data-themes="competition,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#1</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Apple</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Apple Sues OpenAI for Hardware Trade Secret Theft</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Apple filed a federal lawsuit against OpenAI, its hardware startup io Products, and two former Apple employees — Chang Liu and Tang Tan — alleging a coordinated scheme to poach Apple staff and funnel confidential hardware secrets to OpenAI. Apple says it flagged the suspected theft in a February letter and received no response, and that over 400 former Apple employees now work at OpenAI. OpenAI denied the allegations, stating it has 'no interest in other companies' trade secrets.'</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">More than 400 former Apple employees now work at OpenAI, according to Apple's lawsuit.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.dSnm3kaGd0BkNqLYPjeMf0G0FSrdAUM7FPVTrfj_WPd_qn5_Iq4V90bvKuBAbhD14XcDi99Zol5h0_2PZZ-AWf2z2tVAuLN5hJ7C7NEZ6tVxaVS4SmGvmq7Lrpgv1t7LX8bUWw-jWMYhjYXIBMcoalCl93rdsRUuNVfPdSiVT7tou0lyvbIJ0v8G3KFip4SFFpMQRoGCmggAWoujMITXeeTWt6OGazgpeABzUmhA5IrXLGMaVffm8rJlPBRNlR-uskMV55MC9mBXUMMCedWpzZNIwXuRJPtlSYXLBJEb0OE/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h5/h001.CvzQG_v9ZYDVvOHRWfaSUdeN0x8q4vQelQ4Evr0MmIU' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="5017ba81" data-themes="money,competition,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-sky-500 to-blue-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#2</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Sk hynix</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">SK Hynix Raises $26.5B in Largest-Ever US Foreign IPO</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">SK Hynix raised $26.5 billion in its Nasdaq debut, surpassing Alibaba's 2014 record to become the largest-ever US listing by a non-American company. The stock closed up 13% on its first trading day, driven by surging demand for its AI memory chips. The listing coincides with US Commerce Secretary Howard Lutnick pushing SK Hynix and Samsung to establish more semiconductor fabs on American soil.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">$26.5 billion raised, topping Alibaba's 2014 record for the largest US IPO by a non-American company.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Funding & Revenue</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/10/sk-hynix-raises-26-5b-in-the-biggest-foreign-ipo-in-us-history-is-urged-to-build-new-us-fabs/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="0e4da2c9" data-themes="enterprise,competition">
+                        <div class="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#3</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Microsoft</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">AI Sovereignty Debate: Nadella Names 'Reverse Info Paradox'</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Microsoft CEO Satya Nadella coined the term 'Reverse Information Paradox' to describe how AI model providers accumulate competitive intelligence about their enterprise customers with every interaction. This follows Palantir's nine-point 'AI sovereignty' manifesto warning companies that handing proprietary data to AI vendors surrenders their competitive edge. Both leaders argue enterprises need the ability to fine-tune and train their own models while keeping data, weights, and memory in-house.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Palantir's nine-point AI sovereignty manifesto warns companies that sharing data with AI providers risks surrendering their competitive future.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.LDkxbMa7NCxUGG7E2Yh3AM4-bFODKZ5QbcMrafeq8lalQ9VNcIUDLcwj7QZgV2PhKL251ai1CnptWrbaPMP2n7pM09WSC071TlwR5nnbw96VNL4Q6xxMw_w5duAgLcUMrkt_NDdy3MP1GwLzO0UGbYDQqHZq5t_fl9eV8a7xIskZdupxyAObgu8xcuEpjmJTaI9joSld1pfi5n3AD24DzONCu-horo98_s6omDnOkVD1aMeBA8OOL4wN_cyuJ4Y0/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h16/h001.au95VGfOPhdRPRo_R_w1c9iQUz76yiuHyHDDjSNIkUo' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="74599d2f" data-themes="agi,competition">
+                        <div class="h-2 bg-gradient-to-r from-violet-500 to-purple-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#4</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Ai 2027</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">AI 2027 Team Publishes Humanity's 'Plan A' Document</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">The AI 2027 team released a document they're calling humanity's 'Plan A' — a proactive framework for navigating the risks and opportunities of increasingly capable AI systems. The document outlines multiple paths and predictions for how AI development might unfold over the next several years.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">The AI 2027 team released a formal plan document outlining humanity's strategic options as AI capabilities advance.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AGI & Research</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.Q334NVcZU4O6L6VKRz8ijMIt2ECWr2S2d-vpVlKp0JpwJkFc0Ja6HaNcOe2_XB9mfzgZKomJSTSiRXPjyn-KtPbVwatCajEzjXwXYcX854qWbZGPiVQMdsJUFmg-K42HO5LDM6jCLamY64dPW30wOuRmu4VTN0Yuaw4KX7CLYwUSzKvpfjLkE6JHs1sTQohbGcvicX_JOLmHxUmUObmtWE-gA51lJZzE-DYVKecOTkA/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h19/h001.iS6CeIRYwouj5o6SGlR0ZMWcqE_YoO5PDb4APbAxuoI' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="83e6019b" data-themes="competition">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#5</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">China national space administration</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">China Lands Reusable Rocket Booster in World First</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">China successfully recovered a Long March 10B rocket booster for the first time, landing it vertically on a floating platform six minutes after stage separation — placing China in the same league as SpaceX and Blue Origin. The Long March 10B can carry at least 16 metric tons to low-Earth orbit, comparable to SpaceX's Falcon 9. The milestone marks a critical leap toward cheaper, more frequent launches for China.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">The Long March 10B can carry at least 16 metric tons to low-Earth orbit, comparable to SpaceX's Falcon 9 which launches ~150 times per year.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgOnSZcQ6nQPqMlKfmdgHGblEPN3sAJrvToMMIUQp8qi_qGNQx9kNdetGEbP_iJXDoea3BqAtmEPvL_rB3T_9uroVlaeUDO_I5gMtA9DwTeEKJEhY_zFGFCaHnVQDFQL4bPH-Zjgg2tn53uulybNlCPKYWBQw6mSzyEFWLIapumFrIyBZGhb00S0EKMESEGk1rV60QQjYCFz5qOeuceGlNnir7bHY0bnpyX9ZTySaFtmYmh6hnlYmUepP5HRNm5sdeE53ccUzr1IxnFH46FAM0Bc/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h3/h001.bRgbMJttbNQyaxKoVESYS3tESukpp6eDzjGghuafNjY' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="9b06871a" data-themes="agi">
+                        <div class="h-2 bg-gradient-to-r from-violet-500 to-purple-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#6</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Independent (edward kang)</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Teen Builds AI Tool to Screen for ADHD and Autism</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Seventeen-year-old Edward Kang developed RetinaMind, an AI tool that uses retinal scans to distinguish between autism, ADHD, and neurotypical patients with 89% reported accuracy. Kang trained multiple image-analysis models to identify which retinal regions influenced each prediction, while also exploring genetic links to retinal differences. The project could potentially accelerate diagnoses and earlier intervention for children.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">RetinaMind reportedly achieves 89% accuracy in distinguishing autism, ADHD, and neurotypical patients from retinal scans.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AGI & Research</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="4687f64e" data-themes="">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#7</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Academic research</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Scientists Capture New Ocean Floor Formation in Real Time</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">In 2024, a swarm of earthquakes in the Indian Ocean caused tectonic plates to abruptly separate, adding more than three feet of new seafloor in a single event. Scientists had instruments deployed just two months before the earthquakes struck, allowing them to observe the process for the first time ever. The findings, published this week, offer the most detailed look yet at how Earth recycles its own crust.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">More than three feet of new seafloor was added in a single tectonic event in the Indian Ocean in 2024.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="4a4e308b" data-themes="">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#8</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Ku leuven</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">New Research Suggests Earth May Survive the Sun's Death</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">New research from KU Leuven suggests Earth has a better chance of surviving the sun's eventual red giant expansion than previously thought. Updated models of aging star-planet interactions show weaker tidal forces than older calculations predicted, giving Earth more time to drift outward as the dying sun sheds mass. Scientists caution that better stellar observations are still needed before anything is certain.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Updated stellar models show weaker tidal forces than previously calculated, improving Earth's survival odds during the sun's red giant phase.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgFhAl6C5snFMBOsSREoSHVYUE8G6iS9DRsHgvlsfzhASaJKT56NFn4AWE6YtwGvNcVeAHumqpSr8OJIlOZDO4VTXnedrVkVDvm9pwrIhBmf_T42FdqxziJqs6jm4WizC9V1kyJfuD9GiSCUpezzziQ1fxxozlus_lrrFNRtziLMyI-vuwwnSYT_NaPS7CQwAhZ9cOWs1VGVtvFeEPx8wCEhA4skawRRgLWiX8J3V-D_QyuXPTOJ2Q-ZfW3q62N_4JGWRPVgDtKHMP2GgVScxKbybbavCrhPfHdOXSjVEJ-97LdyJODpPhB4TcL_ar_uZbmU0iyOKyQuMDHDwYKxZCHp_aIVVAaNpoAuoQ9FCI1oy/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h5/h001.ZngjehottHIADfBVNVfRsb4JLu6DSKOGRpD2Mds_-2g' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="e1201e46" data-themes="agents,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#9</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Openai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">OpenAI Sends GPT-5.6 to ChatGPT Work Platform</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">OpenAI upgraded ChatGPT Work with its new GPT-5.6 models, enabling users to go from a website idea to a working prototype using ChatGPT Work and the Codex app. The platform supports multi-agent task delegation for complex knowledge work projects. The update also includes a tutorial for building directory-style websites using Astro.js with AI sub-agents.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">ChatGPT Work now runs on GPT-5.6 models, enabling multi-agent project execution within the platform.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AI Agents</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.dSnm3kaGd0BkNqLYPjeMf022yDnKIUiG8l1A8gWu3xvT0_6b-3QHelng2u-TDy3LFtx-009HQ7BWNAHVtF6HEsuV7UuOULNLAqPrdTd66C8r_JhLBrtv-EqXhZflbiMvmbCes6iUS4_ZG4n7rSSl_i4rXMcLMqLndrOhDrhHOAivZ_eMjb8TLBbWxsLJqZ3hc76f9cbRzY9u1rCnP7L1Ce0QLn5ofG9yQdUGCrhJODN1d_F25pRUi7x2NaRDnHDg3OjqeBvJ9A4OElPzZnEltQ/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h38/h001.Uc5dUqUnvC-yz0c3MG9e0LMSUJIxydpuNuNo1oMb47g' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="d92934c8" data-themes="agents,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#10</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Melius</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Melius Launches Node-Based Creative Canvas AI Agent</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Melius launched a creative canvas platform that helps teams generate digital assets in bulk using a node-based interface powered by leading image and video AI models. Its agent, Mel, can regenerate or readjust an entire canvas with a single prompt and integrates with Claude and Slack. The company claims its platform reduces excessive prompting and output inconsistency common in other creative AI tools.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Melius integrates with Claude and Slack, and its agent Mel can regenerate or readjust an entire canvas with a single prompt.</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AI Agents</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://link.mail.beehiiv.com/ss/c/u001.LDkxbMa7NCxUGG7E2Yh3ADtxB5j_VEvvdyV2vYF2GDkwEH9WEOfSAT38sV2qLn0iqYrcPyIqJYhe3xvfRX58Z5Cl6e4mK9mF6UcqcYYPeIqqrK5NT1LHwImoeSRIYgupD1PqmghPVcTAO5y6Itr1V5d8jJnnqS0D1T9_xmq4hcM9gZooGI2_wk5MLLjwhlHrHEnJBWxaOO1bFOokT8bqzIjBs9MoE2uydllfMfnb2K8Vp2GR8rXxdZSw6jIyRf49/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h8/h001.86w2Q5ynzycUGFNn2EU-uIHA8hEOV0Vz2toQgKYzk-g' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="6a51f607" data-themes="competition,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#11</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Openai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">OpenAI May Have Fatally Misstepped in Copyright Fight</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">OpenAI allegedly faked an inability to search its training data and concealed billions of logs from news organizations in its ongoing copyright disputes, according to reporting by the NYT. This revelation could prove devastating to OpenAI's legal defense strategy. The disclosure suggests deliberate obstruction that could severely damage the company's credibility in court.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">OpenAI allegedly hid billions of logs from news organizations</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/tech-policy/2026/07/openai-faked-inability-to-search-training-data-hid-billions-of-logs-nyt-says/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="cfaa3d77" data-themes="agents,money">
+                        <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#12</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Undisclosed ai agent startup</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">AI Agent Startup Lets Its Agent Run Its $100M Fundraise</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">An AI agent startup made headlines by allowing its own AI agent to autonomously manage and execute its $100 million fundraising round. This is believed to be one of the first instances of an AI agent handling a major venture capital fundraise end-to-end. The move serves as both a proof-of-concept and a bold marketing statement about the capability of agentic AI.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">$100M fundraise managed autonomously by an AI agent</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AI Agents</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Funding & Revenue</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/09/an-ai-agent-startup-just-let-its-agent-run-its-100-million-fundraise/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="f0063fca" data-themes="competition,enterprise,agi">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#13</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Openai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">OpenAI Launches GPT-5.6 Family of Models</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">OpenAI has released a new family of models anchored by GPT-5.6, its latest generation AI model. The launch represents OpenAI's continued push to maintain its lead in the foundation model race against competitors like Anthropic and Google. GPT-5.6 has already been designated as the preferred model for Microsoft Copilot 365.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">GPT-5.6 designated as preferred model for Microsoft Copilot 365</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AGI & Research</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/09/openai-launches-its-new-family-of-models-with-gpt-5-6/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="97657818" data-themes="competition,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#14</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Openai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">OpenAI's No. 2 Executive Fidji Simo Steps Down</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Fidji Simo, who served as OpenAI's second-in-command and CEO of Applications, has stepped down from her role. Her departure comes amid a turbulent period for OpenAI that includes lawsuits, leadership changes, and competitive pressure. The exit raises questions about internal stability at the world's most prominent AI company.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Fidji Simo was OpenAI's No. 2 executive</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/09/fidji-simo-steps-down-from-openais-no-2-role/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="4ac3d444" data-themes="agents,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#15</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Openai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">OpenAI Launches New Work Tool for Autonomous Collaboration</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">OpenAI has unveiled a new tool designed to work both independently and alongside humans on professional tasks. The tool represents OpenAI's push into the enterprise productivity space, directly competing with established workplace software. It signals OpenAI's ambition to move beyond a model API provider into an end-to-end work platform.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Tool designed to autonomously do and collaborate on work tasks</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AI Agents</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/ai/2026/07/openai-wants-its-new-tool-to-do-your-work-for-you-and-with-you/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="70953656" data-themes="competition,enterprise">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#16</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Openai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">OpenAI Bets on Families With ChatGPT Home Push</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">OpenAI is expanding ChatGPT's footprint into family households, positioning the AI assistant as a tool for all family members across different age groups. The strategy represents a shift toward consumer market penetration beyond individual power users. This move signals OpenAI's ambition to become a ubiquitous household AI platform.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">ChatGPT expanding into household family use cases</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/11/openai-bets-on-families-as-chatgpt-goes-deeper-into-households/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="1c3838bc" data-themes="enterprise,competition,money">
+                        <div class="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#17</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Hugging face</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Hugging Face CEO: Companies Are Done Renting Their AI</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Hugging Face's CEO argues that enterprises are increasingly moving away from relying on AI model APIs from big providers and toward owning or building their own AI capabilities. This trend reflects growing concerns about vendor lock-in, data privacy, and cost predictability. Hugging Face, as an open-source AI platform, stands to be a major beneficiary of this shift.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Enterprise shift away from rented AI APIs toward owned AI models</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Funding & Revenue</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/10/hugging-faces-ceo-on-why-companies-are-done-renting-their-ai/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="177909ab" data-themes="enterprise,competition">
+                        <div class="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#18</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Xai</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Grok Used to Generate 7,000 Child Sex Images in Lawsuit</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">A lawsuit alleges a man used xAI's Grok AI to generate approximately 7,000 sexual images of his stepdaughter before taking his own life. xAI is accused of only reporting a single gang rape prompt to authorities despite the scale of abuse. The case raises profound questions about AI safety guardrails and mandatory reporting obligations for AI companies.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">7,000 child sex images allegedly generated; xAI reportedly only reported one prompt</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/tech-policy/2026/07/lawsuit-grok-user-made-7k-child-sex-images-xai-only-reported-one-gang-rape-prompt/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="7f8946a5" data-themes="enterprise,competition">
+                        <div class="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#19</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Multiple</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Hackers Can Use 9 Popular AI Tools to Build Massive Botnets</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Security researchers have found that nine of the most widely used AI tools can be exploited by hackers to assemble large-scale botnets. The vulnerabilities highlight how AI tools are becoming vectors for sophisticated cyberattacks rather than just targets. This finding has major implications for enterprise security postures.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">9 of the most popular AI tools vulnerable to botnet assembly exploits</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/security/2026/07/hackers-can-use-9-of-the-most-popular-ai-tools-to-assemble-massive-botnets/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="168293de" data-themes="agents,competition">
+                        <div class="h-2 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#20</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Brown university</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Ivy League Prof Catches AI Cheating With In-Person Finals</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">A Brown University professor, suspecting widespread AI cheating, required students to take an in-person final exam — and scores dropped by 50% compared to take-home assessments. The dramatic score gap suggests AI assistance had been significantly inflating student performance. The case has sparked a broader scandal about AI cheating in higher education.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Scores fell 50% when in-person exams replaced take-home assessments</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AI Agents</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/ai/2026/07/we-cannot-choose-to-become-idiots-the-ai-cheating-scandal-roiling-brown-university/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="40965300" data-themes="enterprise,competition">
+                        <div class="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#21</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Meta</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">EU Orders Meta to Disable Autoplay and Infinite Scroll</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">The European Union has ordered Meta to disable autoplay video and infinite scroll features on its platforms or face massive financial fines. The directive is part of the EU's Digital Services Act enforcement targeting addictive design patterns. This represents one of the most direct regulatory interventions into social media UX design to date.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">EU threatening massive fines if Meta doesn't remove addictive design features</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/tech-policy/2026/07/disable-auto-play-and-infinite-scroll-or-risk-massive-fines-eu-tells-meta/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="fe60a3a3" data-themes="agi,agents">
+                        <div class="h-2 bg-gradient-to-r from-violet-500 to-purple-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#22</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Undisclosed research institution</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Humanoid Robots Perform World-First Surgery on Live Pigs</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Surgeons used humanoid robots in a world-first operation, remotely controlling them to perform surgery on live pigs. The breakthrough demonstrates the potential for robotic surgery to extend medical expertise to remote locations. This represents a significant milestone in combining humanoid robotics with medical applications.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">World-first humanoid robot surgery performed on live pigs</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AGI & Research</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AI Agents</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/ai/2026/07/humanoid-robots-controlled-by-surgeons-did-world-first-operation-on-live-pigs/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="174ff445" data-themes="competition,agi">
+                        <div class="h-2 bg-gradient-to-r from-rose-500 to-red-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#23</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Google</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Google Updates Android Bench With New LLMs, Gemini Lags</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Google has revamped its Android AI development benchmark, Android Bench, adding new large language models including Fable 5 and other agents. However, Google's own Gemini model continues to underperform relative to competing models on the benchmark. The result is an awkward situation where Google's benchmark reveals its own flagship model's relative weakness.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">Gemini still lags behind competitors on Google's own Android Bench</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Market Competition</span> <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">AGI & Research</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://arstechnica.com/google/2026/07/google-revamps-android-ai-dev-benchmark-adds-fable-5-and-other-agents/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+                    <div class="card story-card bg-zinc-900 border border-violet-500/20 rounded-3xl overflow-hidden group" data-story-id="dfb82427" data-themes="enterprise">
+                        <div class="h-2 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="story-badge text-white text-xs font-bold px-3 py-1 rounded-2xl flex items-center gap-2">
+                                    <span>#24</span>
+                                </div>
+                                <div class="text-xs text-zinc-400">Waze / google</div>
+                            </div>
+                            <h3 class="text-xl font-semibold leading-tight mb-3 text-white">Waze Adds New AI-Powered Features and Customization</h3>
+                            <p class="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">Waze has announced a suite of new AI-powered features alongside customization updates for its navigation app. The additions aim to make the Google-owned app more intelligent and personalized for drivers. The update reflects growing consumer expectations for AI integration in everyday mobile applications.</p>
+                            <div class="bg-zinc-800/50 border-l-2 border-amber-500 px-3 py-2 text-xs text-amber-200 mt-3 rounded-r">New AI features added to Waze navigation app</div>
+                            <div class="flex flex-wrap gap-1 mt-3"><span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border border-zinc-600 text-zinc-300">Enterprise & B2B</span></div>
+                        </div>
+                        <div class="bg-zinc-950 px-6 py-4 flex items-center justify-between border-t border-zinc-800">
+                            
+                            <a href='https://techcrunch.com/2026/07/13/waze-adds-new-ai-powered-features-and-customization-updates/' target='_blank' class='inline-flex items-center gap-1.5 text-violet-400 hover:text-violet-300 text-xs font-medium no-underline transition-colors'>🔗 View Source →</a>
+                        </div>
+                    </div>
+        
+            </div>
+
+            <!-- LAUNCHES SECTION -->
+            
+            <div class="mb-12">
+                <div class="flex items-end justify-between mb-6">
+                    <div>
+                        <div class="inline-flex items-center gap-x-3 bg-zinc-900 text-zinc-400 text-xs tracking-widest px-5 py-2 rounded-3xl">
+                            <i class="fa-solid fa-rocket"></i>
+                            <span>15 NEW LAUNCHES</span>
+                        </div>
+                        <h2 class="header-font text-3xl font-bold tracking-tighter mt-3">Latest Launches & Releases</h2>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🚀</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Adapt</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Other</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1"></p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">An AI tool listed in The Rundown AI's trending tools section.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.Q334NVcZU4O6L6VKRz8ijKthmSlTrsnmYJtlngUAkP7BRVE2vYoWfoFF7Q8-K0jua2-aAb5qMo9A11keJD8ta5YqtVZO4N3veZJNwV6k41W6mpBnSoZGnxUOW0zXh9UgAsaqbM9l6C3wOTbUCs8RBjkkhRvCbj0Jfzoozf-0J7RYfewDLfoq48o8Z0BufuTS/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h25/h001.6vs6ZZxJeTveaVp8sYY_Oxsb5jTbzSc9jDkGL_StDsg" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🏗️</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Android Bench (Revamped)</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Platform</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">Google</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">Google's updated Android AI development benchmark, now featuring new large language models including Fable 5 and additional AI agents for more comprehensive model evaluation.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://arstechnica.com/google/2026/07/google-revamps-android-ai-dev-benchmark-adds-fable-5-and-other-agents/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">📱</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">ChatGPT Family Plan</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">App</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">OpenAI</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">OpenAI's expanded ChatGPT offering targeting household and family use cases, designed to serve multiple users of different age groups within the same home.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://techcrunch.com/2026/07/11/openai-bets-on-families-as-chatgpt-goes-deeper-into-households/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🏗️</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">ChatGPT Work with GPT-5.6</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Platform</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30" title="Mentioned in: The Rundown AI, Superhuman">⭐ 2x</span>
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">OpenAI</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">OpenAI upgraded ChatGPT Work with GPT-5.6 models, enabling multi-agent task delegation for complex knowledge work including website building, project planning, and sub-agent coordination via the Codex integration.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.dSnm3kaGd0BkNqLYPjeMf022yDnKIUiG8l1A8gWu3xvT0_6b-3QHelng2u-TDy3LFtx-009HQ7BWNAHVtF6HEsuV7UuOULNLAqPrdTd66C8r_JhLBrtv-EqXhZflbiMvmbCes6iUS4_ZG4n7rSSl_i4rXMcLMqLndrOhDrhHOAivZ_eMjb8TLBbWxsLJqZ3hc76f9cbRzY9u1rCnP7L1Ce0QLn5ofG9yQdUGCrhJODN1d_F25pRUi7x2NaRDnHDg3OjqeBvJ9A4OElPzZnEltQ/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h38/h001.Uc5dUqUnvC-yz0c3MG9e0LMSUJIxydpuNuNo1oMb47g" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">💻</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Google Home Speaker</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Hardware</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">Google</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A $99 smart speaker designed around Google's Gemini AI assistant, combining speaker functionality with AI-powered assistance to control connected devices, answer questions, and manage routines.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.ZjfK3To3aUCywjwu8AcLIg6ilfhfCV5b5IJcblFQKq-XkljLoogZOSbgCLxX2PHmH2qbntWsWi22MaEURlHPe5tpnRnsbDAuXrHHVPYKVUG1lgk8MT3IWpzyG3w0YO6wyAjDboSNyg5dNfSrYOaLqV0R8c8FyuVOcD1nfuHeS-thtpGcT7WlyuesN0g-EXJMRoEVdGPUaj4Q_L-eVSCGb2u5xRUwIq93l7CblbYsgYPDsgrKoFrUKbTvMKEqA_aCEnlA98M5NMBrG4xXqGpmyd4bFpAIFm024kNm-1K1PM2WXWH9rP8CPqq5YO9kgXtt/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h13/h001.AL96ZPOrI-cDdD8L9v8MhQTIWZVLnq6p8L_65zyszXU" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🧠</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">GPT-5.6 Model Family</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Model</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30" title="Mentioned in: TechCrunch AI, Ars Technica AI">⭐ 2x</span>
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">OpenAI</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">OpenAI's latest generation of AI models anchored by GPT-5.6, designated as the preferred model for Microsoft Copilot 365. Represents OpenAI's continued rapid iteration on its foundation model lineup.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://techcrunch.com/2026/07/09/openai-launches-its-new-family-of-models-with-gpt-5-6/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🧠</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">GPT-5.6 Sol</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Model</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">OpenAI</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A new GPT model variant featured as a trending AI tool in The Rundown AI.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.eCbm_1zon7G0lMoXTECWa-IUY9yqSc2cx0km5OJXo-Oi6C-ktxVku5XHXUsLyTYjv-SGWWMNXbgXcOqOSD4mP4DfW9rMTzEYp0sy3KH9eMUwFLWud2YskeJ63b19DCaQpeL7L_dbj_bnb1ObndDmkNJJyXqCzh5q-IbB2LvwaMm85z5q16C5DgvrKV9x-_-wkgtbdSsu6LBBlogp5LjtHXbswBHc5DSxUJiputNcEeR3hyctyQRN3HjhA8CvsBcO/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h26/h001.MMzYD6oJqXkygSWKfWm9DTHpxyDlKmTx_KyPVcnpfEk" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">✨</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">GPT-Live</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Feature</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">OpenAI</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A real-time AI interaction product from OpenAI listed as a trending tool in The Rundown AI.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.dSnm3kaGd0BkNqLYPjeMf_DKThdpaPaB9_aROy42m3_7WlrX8PLjpFlKob2JbCJIGZyjdMsSw1S-_6oaDwS7gKeO5Wi_5LIrInIHmM1xLKZkNduLKrvjULcqmy1i3IgQXEJVOYcBFIf083EqGRfIEaBwlPhOP4bPPAcRJPF05sPbk9TcoQfo1HiwsmIaBdBMxGEp0CdGcRMPjPfHyAQmR92_Zhv2wle7p_udXjtxVGKYLq38AFnE2psSFXalAmeo/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h28/h001.szghhKsZycjCbkAks7ZURs7U77K4-qG4SmmsKkwKXmU" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🏗️</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Melius Creative Canvas</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Platform</span>
+                                        
+                                        <span class="text-zinc-500 text-xs">July 13, 2026</span>
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">Melius</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A node-based creative canvas platform where AI agent Mel generates digital assets in bulk, can regenerate entire canvases with a single prompt, and integrates with Claude and Slack.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.LDkxbMa7NCxUGG7E2Yh3ADtxB5j_VEvvdyV2vYF2GDkwEH9WEOfSAT38sV2qLn0iqYrcPyIqJYhe3xvfRX58Z5Cl6e4mK9mF6UcqcYYPeIqqrK5NT1LHwImoeSRIYgupD1PqmghPVcTAO5y6Itr1V5d8jJnnqS0D1T9_xmq4hcM9gZooGI2_wk5MLLjwhlHrHEnJBWxaOO1bFOokT8bqzIjBs9MoE2uydllfMfnb2K8Vp2GR8rXxdZSw6jIyRf49/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h8/h001.86w2Q5ynzycUGFNn2EU-uIHA8hEOV0Vz2toQgKYzk-g" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">💻</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Memoket Gem</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Hardware</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">Memoket</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A wearable device worn on the wrist or clipped to an Apple Watch that captures conversations with one press and connects context across them, syncing with Google Calendar, Slack, and Notion.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.DbzK6ussT05IJzzbg4YqOsXZcpCgNERhhPMUWqLEnXJAZBERu0O1Q4p-QiGo6p_8Wr0Tn4jS3DOEzO5WOpIY_BkI5J3b5pR0VBmi7nigZQO8a8zMTFpGOTflwTbS6aSe19S1S0hgPucE1po4uC9vmIY_RvAYP8RL4QVSlengjeUi-EDg2vyueOirFdZFjuBNKJqPLiaqtU-z4Ds5gJ-NXXJQ583B1KQ5LhcX1tax58w/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h10/h001.FI8RvfCD5C2R-qIpWg6P7osvOmUMjlOxmuPo7tcH_Co" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">💻</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">MemoMind One</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Hardware</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1"></p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">Camera-free smart glasses with a built-in micro-LED display projecting a private screen into the wearer's field of view, featuring AI-powered capabilities, audio playback, notifications, and hands-free information access.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgOdG3ZoNMbJWbHXmDWBoiCwNTFUa8IWC-jwhKzP3uTfb-UuteSd1Ci_zfYWYZbtcUQrUQEGk4dNFiL4zY22rGvqLRopVunPnColXCk00z1Kf_v2--WGFHGXRb1rkg9VybqSjObTNg4u5oer1TxLctZysKWBYoZh00gfFAKShymcW-IBoZ_XwTrVuY9uYb1oHtc6KbWvKsbxCzW4GcuqbeGu63IYvXmUlvaFMUKZuCBgDTlt91FhFekZ7ObKaqvt7MA/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h16/h001.tZJymSx1NYsTXAcWrppwNhXok4xfLG2aXiAxSr51cdo" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🏗️</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">OpenAI Work Tool</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Platform</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">OpenAI</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A new AI-powered tool from OpenAI designed to autonomously complete professional work tasks or collaborate interactively with users, targeting the enterprise productivity market.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://arstechnica.com/ai/2026/07/openai-wants-its-new-tool-to-do-your-work-for-you-and-with-you/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🔌</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Runway Dev</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Api</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">Runway</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A developer-focused product from Runway listed as a trending AI tool in The Rundown AI.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.m2EEUkcxF6pHY254D2DyCsU-HXFmMEq0xUpBFRPPfCBf-B8E6JyRI0Q0kKsLj8CpVMK0Fu63-3ScgoII1Y8cWKgapkw8RgBzctvvix3qBESLcqubqjwnmOxHqYliwJ443Wmg-iDeSQgq0xYRTA9nx1ZujVtWOjBOc5oU19UXmtkx9ftuLdl0b63_r66OxpkRpNyP8XTpnMm6WcHmtI3XQRAM1IbTYRuIgF9hP32Q2N8igsUxdiiHy6GqSbyRrh8c/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h27/h001.DqflNQRGVxB07pz4mYCMjkJccj8prFXB3siL4h1wmW4" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">🔌</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Strands Agents SDK</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Api</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">AWS</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">An open-source agent harness SDK from AWS that enables building production-ready AI agents in a few lines of code, with context management, execution limits, observability, and hooks for monitoring and debugging.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://link.mail.beehiiv.com/ss/c/u001.7FjCl1Hhb45GEizGv1NNbFnjQhe8vf8S0LiVzHPqfnctsKTDkYRoWwiDxzDox_hxZcaLwqiXlw-CGJsLzwWlvkcb0UaWF5b6HtAaggESdBw_Ooh-RG9PRjfcpiiaXNQCvm3lOpce_WUx6tsb47FCO_zAvdnhiQ-FjOgHTiNLPrsi4YZUh37Z07MjBK5ulNnuc3-MOkMo2Kth-0TXFACAXTr9EPViLrgZP4lhicgi3X6kGjV95I0An9P7VoxBwzafF1MhaeBro4yO58LTxPURQ-9H28_erLmIGxCdEYN2I_8k9xg63zCCGcfFmgVoIC4k/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h8/h001.bTgIvyly14-UGleajX3OrzDAk1-PSzAA39l127wxmJU" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-violet-500/30 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="text-2xl">✨</div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 class="text-white font-semibold text-sm">Waze AI Features Update</h4>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">Feature</span>
+                                        
+                                        
+                                    </div>
+                                    <p class="text-zinc-500 text-xs mb-1">Waze / Google</p>
+                                    <p class="text-zinc-400 text-sm leading-relaxed">A new set of AI-powered navigation features and personalization options added to the Waze app, enhancing the driving experience with intelligent suggestions and customization.</p>
+                                    <div class="mt-2 flex items-center gap-3"><a href="https://techcrunch.com/2026/07/13/waze-adds-new-ai-powered-features-and-customization-updates/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline">Visit →</a></div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+            <!-- TOOLS SECTION -->
+            
+            <div class="mb-12">
+                <div class="flex items-end justify-between mb-6">
+                    <div>
+                        <div class="inline-flex items-center gap-x-3 bg-zinc-900 text-zinc-400 text-xs tracking-widest px-5 py-2 rounded-3xl">
+                            <i class="fa-solid fa-toolbox"></i>
+                            <span>7 TOOLS MENTIONED</span>
+                        </div>
+                        <h2 class="header-font text-3xl font-bold tracking-tighter mt-3">AI Tools Radar</h2>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap mb-4">
+                    <button class="tool-filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-600 text-zinc-300 bg-transparent cursor-pointer hover:border-emerald-500 hover:text-emerald-400 transition-colors active" onclick="filterTools('all')">All (7)</button><button class="tool-filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-emerald-500 hover:text-emerald-400 transition-colors" onclick="filterTools('other')">🔧 Other (1)</button><button class="tool-filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-700 text-zinc-400 bg-transparent cursor-pointer hover:border-emerald-500 hover:text-emerald-400 transition-colors" onclick="filterTools('productivity')">📋 Productivity (6)</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="toolsGrid">
+                    
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="productivity">
+                            <span class="text-lg flex-shrink-0">📋</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">ChatGPT</span>
+                                    
+                                    
+                                    <a href="https://techcrunch.com/2026/07/11/openai-bets-on-families-as-chatgpt-goes-deeper-into-households/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">OpenAI's flagship AI assistant, now being expanded into family and household use cases with new consumer-focused features. · <span class="text-zinc-500">OpenAI</span></p>
+                            </div>
+                        </div>
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="other">
+                            <span class="text-lg flex-shrink-0">🔧</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">Fable 5</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NEW</span>
+                                    
+                                    <a href="https://arstechnica.com/google/2026/07/google-revamps-android-ai-dev-benchmark-adds-fable-5-and-other-agents/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">A large language model newly added to Google's Android Bench benchmark suite for AI developer evaluation.</p>
+                            </div>
+                        </div>
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="productivity">
+                            <span class="text-lg flex-shrink-0">📋</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">Gemini</span>
+                                    
+                                    
+                                    <a href="https://arstechnica.com/google/2026/07/google-revamps-android-ai-dev-benchmark-adds-fable-5-and-other-agents/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">Google's flagship large language model, evaluated on Android Bench where it continues to underperform relative to competing models. · <span class="text-zinc-500">Google</span></p>
+                            </div>
+                        </div>
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="productivity">
+                            <span class="text-lg flex-shrink-0">📋</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">GPT-5.6</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NEW</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30" title="Mentioned in: TechCrunch AI, Ars Technica AI">⭐ 2x</span>
+                                    <a href="https://techcrunch.com/2026/07/09/openai-launches-its-new-family-of-models-with-gpt-5-6/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">OpenAI's latest foundation AI model, serving as the anchor of its new model family and the preferred engine for Microsoft Copilot 365. · <span class="text-zinc-500">OpenAI</span></p>
+                            </div>
+                        </div>
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="productivity">
+                            <span class="text-lg flex-shrink-0">📋</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">Grok</span>
+                                    
+                                    
+                                    <a href="https://arstechnica.com/tech-policy/2026/07/lawsuit-grok-user-made-7k-child-sex-images-xai-only-reported-one-gang-rape-prompt/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">xAI's AI model and assistant, cited in a lawsuit alleging it was used to generate thousands of child sexual abuse images. · <span class="text-zinc-500">xAI</span></p>
+                            </div>
+                        </div>
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="productivity">
+                            <span class="text-lg flex-shrink-0">📋</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">Microsoft Copilot 365</span>
+                                    
+                                    
+                                    <a href="https://techcrunch.com/2026/07/09/openai-says-gpt-5-6-is-the-preferred-model-for-microsoft-copilot-amid-breakup-chatter/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">Microsoft's enterprise AI productivity suite, now powered by OpenAI's GPT-5.6 as its preferred underlying model. · <span class="text-zinc-500">Microsoft</span></p>
+                            </div>
+                        </div>
+                        <div class="tool-item bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-4 py-3 hover:border-emerald-500/20 transition-colors flex items-center gap-3" data-tool-category="productivity">
+                            <span class="text-lg flex-shrink-0">📋</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-white text-sm font-medium">Waze</span>
+                                    
+                                    
+                                    <a href="https://techcrunch.com/2026/07/13/waze-adds-new-ai-powered-features-and-customization-updates/" target="_blank" class="text-violet-400 hover:text-violet-300 text-xs no-underline ml-2">↗</a>
+                                </div>
+                                <p class="text-zinc-400 text-xs mt-0.5 truncate">Popular navigation app now enhanced with new AI-powered features and customization options for a smarter driving experience. · <span class="text-zinc-500">Google</span></p>
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+            <!-- SUBSCRIBER FOOTER --><div class="max-w-4xl mx-auto mb-8 mt-4"><div class="bg-zinc-900 border border-violet-500/30 rounded-2xl p-8 text-center"><p class="text-zinc-300 text-sm mb-5">Daily AI Insights By <a href="https://www.michaelkristof.com" target="_blank" class="text-violet-400 hover:text-violet-300 no-underline font-medium">Michael Kristof</a></p><a href="https://www.michaelkristof.com/ai-edge-newsletter/" target="_blank" class="inline-block bg-gradient-to-r from-violet-600 to-violet-500 text-white text-base font-bold px-8 py-4 rounded-xl no-underline hover:from-violet-500 hover:to-violet-400 transition-all shadow-lg shadow-violet-500/25">Subscribe to AI EDGE →</a><p class="text-white text-sm mt-5">Get this report in your inbox every weekday morning</p></div></div>
+        </div>
+    </div>
+
+    <!-- Subscriber version: no share modal -->
+    <div class="modal-overlay" id="shareModal" style="display:none!important">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📤 Share Story</h2>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="platform-toggle">
+                    <button class="platform-btn linkedin active" onclick="setPlatform('linkedin')">LinkedIn</button>
+                    <button class="platform-btn x" onclick="setPlatform('x')">X / Twitter</button>
+                </div>
+                <div class="length-toggle">
+                    <button class="length-btn active" onclick="setLength('full')">Full Post</button>
+                    <button class="length-btn" onclick="setLength('short')">Short Version</button>
+                </div>
+                <div class="image-toggle">
+                    <span class="toggle-label">Image:</span>
+                    <button class="image-btn active" onclick="setImageType('none')">Text Only</button>
+                    <button class="image-btn" onclick="setImageType('card')">Share Card</button>
+                    <button class="image-btn" onclick="setImageType('ai')" id="aiImageBtn">AI Generated</button>
+                </div>
+                <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                    <img id="imagePreview" src="" alt="Share image preview">
+                    <button class="generate-ai-btn" id="generateAiBtn" onclick="generateAiImage()" style="display: none;">🎨 Generate AI Image</button>
+                    <div class="ai-loading" id="aiLoading" style="display: none;">⏳ Generating AI image...</div>
+                </div>
+                <div class="post-preview linkedin" id="postPreview"></div>
+                <div class="action-buttons">
+                    <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()">📋 Copy Text</button>
+                    <button class="download-btn" id="downloadBtn" onclick="downloadImage()" style="display: none;">⬇️ Download Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stories = [{"id": "9959dd39", "title": "Apple Sues OpenAI for Hardware Trade Secret Theft", "company": "Apple", "themes": ["competition", "enterprise"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "Apple sues OpenAI, alleging 400+ hires were a pipeline for hardware trade secret theft", "headline_x": "Apple sues OpenAI: 400+ hires allegedly funneled hardware secrets", "why_it_matters": "This lawsuit could derail OpenAI's 2027 hardware device and redefine the legal limits of AI talent poaching across the industry.", "what_happened": "Apple filed a federal lawsuit against OpenAI, naming hardware chief Tang Tan and engineer Chang Liu, alleging a coordinated scheme to steal confidential hardware IP through aggressive employee poaching.", "implications": ["OpenAI's Jony Ive-led hardware device could face court-ordered redesign or delays, handing Apple more runway to compete.", "The lawsuit signals Apple and OpenAI are now direct adversaries, not partners, in the consumer hardware and AI space.", "A precedent-setting ruling could constrain how aggressively AI labs can recruit from competitors."], "implications_short": ["OpenAI's 2027 hardware plans face serious legal headwinds.", "Apple and OpenAI are now formally at war \u2014 not partners."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.dSnm3kaGd0BkNqLYPjeMf0G0FSrdAUM7FPVTrfj_WPd_qn5_Iq4V90bvKuBAbhD14XcDi99Zol5h0_2PZZ-AWf2z2tVAuLN5hJ7C7NEZ6tVxaVS4SmGvmq7Lrpgv1t7LX8bUWw-jWMYhjYXIBMcoalCl93rdsRUuNVfPdSiVT7tou0lyvbIJ0v8G3KFip4SFFpMQRoGCmggAWoujMITXeeTWt6OGazgpeABzUmhA5IrXLGMaVffm8rJlPBRNlR-uskMV55MC9mBXUMMCedWpzZNIwXuRJPtlSYXLBJEb0OE/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h5/h001.CvzQG_v9ZYDVvOHRWfaSUdeN0x8q4vQelQ4Evr0MmIU", "https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgH-qigySh3hAoVuoVNaPnGWZuwOIj_wXf_Yi0Q--LBjPg4-gUGVsTGdkYBCkLmih6s7W5uu53PfNu0ovl1R2yZGuyd8W5tyudaYKqlEfMsS0ZB82itnO0lTu_Cd92cHzPVcLeJtTrSdIoHwQu-rlUrAXm8pgP0QK8wOVC4B0ptGHt20K3BL5CRsTWZUiQVI1MGCm_9IxYlfKMHw4GVF_oV0i7q89ei79E3Z0uV46JdeHkHzhZUaYScmp-kgZp35z3rvcQk6_zmSHV_dvySdiQxJi63CRSxrFw1Zdxyaa70vzO3mauwX9DSbOLMBWz6bik8XsB3F8BJF3CNkB24-m5GCMJRMwz9K_e9jV4K6uioaO0-VY6FGleVnfKzJu_MEwUfKDCUuJz7jYfPu7XIm0-7-LV-ml2-8WaFaLFICNU2Ocsl7tXWYCQDH7Lh3RgRXhiVU48yXod8ba-IFs_2_7i6vmu1f67RewSwWptMm-h7_Jw2zFtOLj3oCR49JnQFm3b2hxWCcaDR2IuZqd7HoULeRIPnKip7Cc1mfOuMZdcqMGSHC1_b8kd4n-fWQ5UbHd5BMuaesr7lGIMz9nYEfBXOXw2tDu4zKXXkRd9qWV1RCPgxzk9fYkMmYfquiwxva1UaE25K39Dc4n8Tl0Lb2teY8yZuVL6PyQ2sWCr5jedspLp8Mb6EDsfJLRkSZwgbkFQdJ1kT7eULw56Dm4jOtoXn-bwxIQduw9WAuTGc-gthCRcBJTcNMwGyIIg56jKPO9nHXOdZaWJoAcgV8QlyZKGHs/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h3/h001.CR-pzxpV-y8HQ7WEqImgfDoqCZXm8H8CrWhbVICwuF8", "https://techcrunch.com/2026/07/10/apple-sues-openai-over-alleged-trade-secret-theft/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-9959dd39.png", "share_card_filename": "card-9959dd39.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "5017ba81", "title": "SK Hynix Raises $26.5B in Largest-Ever US Foreign IPO", "company": "SK Hynix", "themes": ["money", "competition", "enterprise"], "hashtags": ["#AIFunding", "#VentureCapital", "#AI"], "share_content": {"headline_linkedin": "SK Hynix raises $26.5B on Nasdaq \u2014 the largest-ever US IPO by a foreign company", "headline_x": "SK Hynix's $26.5B Nasdaq debut just broke Alibaba's 11-year record", "why_it_matters": "This IPO signals that AI memory chips are now Wall Street's hottest infrastructure bet, with geopolitical pressure mounting to bring that supply chain to US soil.", "what_happened": "SK Hynix raised $26.5 billion in its Nasdaq debut, surpassing Alibaba's 2014 record, with shares closing up 13% on strong AI chip demand.", "implications": ["AI memory chips are being repriced as critical infrastructure, not commodity hardware.", "US political pressure on SK Hynix and Samsung to build domestic fabs could reshape global semiconductor supply chains.", "Record investor appetite for AI chip plays suggests the AI infrastructure buildout has years of runway ahead."], "implications_short": ["AI memory is now Wall Street's hottest infrastructure trade.", "US pressure for domestic fabs is reshaping chip geopolitics."]}, "source_urls": ["https://techcrunch.com/2026/07/10/sk-hynix-raises-26-5b-in-the-biggest-foreign-ipo-in-us-history-is-urged-to-build-new-us-fabs/", "https://link.mail.beehiiv.com/ss/c/u001.cbTlTBbOm0oxrOJrFZNEqfj95L9dhJLTAddWNh9iMDXILq3sFu9uwJVVJE5SVDdCJMzr0LpprLPsbGANBmBEeoCNIhaJyC6syyBJaWOeNgN26nt2sHHjLtJfVs-WbdTBNHnGNKTMMF7DZe95uSE0R3y6-4yM2Ljg1gTZdbd6NaIvlCNnp0EJ5Oy0ArTuJeW3177Rtm9sqcfDeaGLsq-nUMFMMQkcAq_E_8iWrIH66HQ1Fn4fIfVuRBVBfZTGJLy97jKcmp87S5vZlPDu9bZGdNOvr-K5G8IzATAyLSJ3wvh7lB2eEFct_dSqDHCf-ZYD2MHUkT6jDoJsVquPn0PPbD1pZwYNa7DuVO4-L8PbjMY/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h7/h001.L5kuo59q1KMYvKPeRvKFVadpBq6Hv06SGgpuZoHfsw0"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-5017ba81.png", "share_card_filename": "card-5017ba81.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "0e4da2c9", "title": "AI Sovereignty Debate: Nadella Names 'Reverse Info Paradox'", "company": "Microsoft", "themes": ["enterprise", "competition"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "Satya Nadella names the 'Reverse Information Paradox' \u2014 why AI providers may be learning more from you than you realize", "headline_x": "Nadella's 'Reverse Information Paradox': every AI prompt teaches your vendor to compete with you", "why_it_matters": "Every enterprise AI prompt may be training your vendor to understand \u2014 and eventually outcompete \u2014 your business.", "what_happened": "Microsoft's Satya Nadella coined the 'Reverse Information Paradox' to describe how AI providers accumulate enterprise intelligence, echoing Palantir's earlier 'AI sovereignty' manifesto.", "implications": ["Enterprises face a structural dilemma: using AI tools may gradually erode their proprietary competitive advantages.", "Demand for private, on-premise AI model training and deployment will likely accelerate as this narrative gains traction.", "Vendors who offer true data isolation and customer-owned model training will have a significant enterprise sales advantage."], "implications_short": ["Every AI prompt could be teaching your vendor to compete with you.", "Expect surging enterprise demand for private, on-premise AI solutions."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.LDkxbMa7NCxUGG7E2Yh3AM4-bFODKZ5QbcMrafeq8lalQ9VNcIUDLcwj7QZgV2PhKL251ai1CnptWrbaPMP2n7pM09WSC071TlwR5nnbw96VNL4Q6xxMw_w5duAgLcUMrkt_NDdy3MP1GwLzO0UGbYDQqHZq5t_fl9eV8a7xIskZdupxyAObgu8xcuEpjmJTaI9joSld1pfi5n3AD24DzONCu-horo98_s6omDnOkVD1aMeBA8OOL4wN_cyuJ4Y0/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h16/h001.au95VGfOPhdRPRo_R_w1c9iQUz76yiuHyHDDjSNIkUo", "https://link.mail.beehiiv.com/ss/c/u001.LDkxbMa7NCxUGG7E2Yh3AMV7NQg0bV8dJ_5F6QMTkadXn9KChzyqSSIPV9HP_Svydmw6LdCMnx_C6kD2oSay2K2TL7wdr9jB85TOBy5QYf2IgRueI5VzdUGqxwkgajMBh6s97aKsddiOPs8tK2GKrKMEHWjDLqGrs-0Ay5dEIQN3kBA56yG07v1OlTRnIBTH8Xf6L2NMook6FbP_Ehf7CI5-JNjeSlF27Toeya_1I5MCs3wkmDpfIahvZGsey_BT/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h15/h001.Hcf51pJb6A0YkW06rlPB2xyJSDXqPH3nJtRyS89QWoU"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-0e4da2c9.png", "share_card_filename": "card-0e4da2c9.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "74599d2f", "title": "AI 2027 Team Publishes Humanity's 'Plan A' Document", "company": "AI 2027", "themes": ["agi", "competition"], "hashtags": ["#AGI", "#AIResearch", "#MachineLearning"], "share_content": {"headline_linkedin": "The AI 2027 team just published humanity's 'Plan A' for navigating advanced AI", "headline_x": "AI 2027 team drops humanity's 'Plan A' \u2014 a roadmap for surviving advanced AI", "why_it_matters": "For the first time, a serious AI research team has moved from warning about advanced AI risks to actively publishing a strategic plan to navigate them.", "what_happened": "The AI 2027 team released a document outlining proactive paths and predictions for humanity to navigate the development of increasingly capable AI systems.", "implications": ["AI safety planning is maturing from academic warnings to actionable strategic frameworks.", "This could become a reference document for policymakers and regulators shaping AI governance.", "Publishing a 'Plan A' signals researchers believe advanced AI timelines are short enough to require immediate preparation."], "implications_short": ["AI safety is moving from warnings to actual strategic plans.", "Short timelines are now assumed \u2014 preparation is urgent."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.Q334NVcZU4O6L6VKRz8ijMIt2ECWr2S2d-vpVlKp0JpwJkFc0Ja6HaNcOe2_XB9mfzgZKomJSTSiRXPjyn-KtPbVwatCajEzjXwXYcX854qWbZGPiVQMdsJUFmg-K42HO5LDM6jCLamY64dPW30wOuRmu4VTN0Yuaw4KX7CLYwUSzKvpfjLkE6JHs1sTQohbGcvicX_JOLmHxUmUObmtWE-gA51lJZzE-DYVKecOTkA/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h19/h001.iS6CeIRYwouj5o6SGlR0ZMWcqE_YoO5PDb4APbAxuoI"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-74599d2f.png", "share_card_filename": "card-74599d2f.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "83e6019b", "title": "China Lands Reusable Rocket Booster in World First", "company": "China National Space Administration", "themes": ["competition"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "China just landed a reusable rocket booster for the first time \u2014 closing the gap with SpaceX and Blue Origin", "headline_x": "China lands its first reusable rocket. The space race just got real again.", "why_it_matters": "Reusable rockets are the key to cheap, frequent space access \u2014 China achieving this milestone reshapes the global space race and geopolitical competition in orbit.", "what_happened": "China successfully recovered its Long March 10B rocket booster by landing it vertically on a floating platform, marking its first reusable rocket milestone comparable to SpaceX's Falcon 9.", "implications": ["China can now pursue dramatically cheaper and more frequent space launches, accelerating satellite and military space programs.", "US space dominance through SpaceX's reusability advantage is no longer unique, intensifying geopolitical competition in orbit.", "Commercial space companies globally will face a new competitive dynamic as Chinese launch costs decline."], "implications_short": ["China just matched SpaceX's core reusability capability.", "The global space race has a credible new competitor."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgOnSZcQ6nQPqMlKfmdgHGblEPN3sAJrvToMMIUQp8qi_qGNQx9kNdetGEbP_iJXDoea3BqAtmEPvL_rB3T_9uroVlaeUDO_I5gMtA9DwTeEKJEhY_zFGFCaHnVQDFQL4bPH-Zjgg2tn53uulybNlCPKYWBQw6mSzyEFWLIapumFrIyBZGhb00S0EKMESEGk1rV60QQjYCFz5qOeuceGlNnir7bHY0bnpyX9ZTySaFtmYmh6hnlYmUepP5HRNm5sdeE53ccUzr1IxnFH46FAM0Bc/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h3/h001.bRgbMJttbNQyaxKoVESYS3tESukpp6eDzjGghuafNjY"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-83e6019b.png", "share_card_filename": "card-83e6019b.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "9b06871a", "title": "Teen Builds AI Tool to Screen for ADHD and Autism", "company": "Independent (Edward Kang)", "themes": ["agi"], "hashtags": ["#AGI", "#AIResearch", "#MachineLearning"], "share_content": {"headline_linkedin": "A 17-year-old built an AI that screens for ADHD and autism from retinal scans with 89% accuracy", "headline_x": "Teen builds AI that spots ADHD and autism from eye scans \u2014 89% accurate", "why_it_matters": "A non-invasive, AI-powered retinal scan tool could dramatically speed up ADHD and autism diagnoses for millions of children currently waiting years for assessments.", "what_happened": "17-year-old Edward Kang developed RetinaMind, an AI image-analysis tool that uses retinal scans to distinguish between autism, ADHD, and neurotypical patients with reported 89% accuracy.", "implications": ["Retinal scanning could become a fast, non-invasive front-line screen for neurodevelopmental conditions if clinically validated.", "This demonstrates how consumer-grade AI tools are democratizing medical research at an unprecedented level.", "Early, accurate diagnosis of ADHD and autism significantly improves long-term outcomes \u2014 scaling this capability could be transformative."], "implications_short": ["AI-powered eye scans could revolutionize early neurodevelopmental diagnosis.", "Individual researchers now have institutional-grade AI capabilities."]}, "source_urls": [], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-9b06871a.png", "share_card_filename": "card-9b06871a.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "4687f64e", "title": "Scientists Capture New Ocean Floor Formation in Real Time", "company": "Academic Research", "themes": [], "hashtags": [], "share_content": {"headline_linkedin": "Scientists just watched new ocean floor form in real time \u2014 a world first in geological observation", "headline_x": "World first: Scientists watched 3+ feet of new ocean floor appear in a single earthquake event", "why_it_matters": "Observing seafloor spreading in real time for the first time gives scientists unprecedented data to understand Earth's crustal recycling \u2014 with implications for earthquake and tsunami prediction.", "what_happened": "A 2024 Indian Ocean earthquake swarm caused tectonic plates to separate and create 3+ feet of new seafloor, which scientists were able to observe in real time for the first time ever.", "implications": ["Real-time tectonic data will refine earthquake and tsunami prediction models.", "This validates the value of pre-positioned ocean monitoring infrastructure for capturing rare geological events.", "New insights into crustal recycling could inform subsea infrastructure planning and resource mapping."], "implications_short": ["First real-time seafloor observation unlocks new geological insights.", "Ocean monitoring infrastructure is now capturing once-in-a-lifetime events."]}, "source_urls": [], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-4687f64e.png", "share_card_filename": "card-4687f64e.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "4a4e308b", "title": "New Research Suggests Earth May Survive the Sun's Death", "company": "KU Leuven", "themes": [], "hashtags": [], "share_content": {"headline_linkedin": "New research from KU Leuven suggests Earth may survive the sun's red giant expansion after all", "headline_x": "Earth might survive the sun dying \u2014 new stellar models are more optimistic than we thought", "why_it_matters": "Updated models of dying stars suggest Earth has a better survival chance during the sun's red giant phase, revising a long-held assumption about our planet's ultimate fate.", "what_happened": "KU Leuven researchers published updated models showing weaker tidal forces between aging stars and planets than previously calculated, improving Earth's odds of drifting to safety.", "implications": ["Revised stellar physics could change how scientists assess long-term habitability around aging star systems.", "This illustrates how model refinements in astrophysics can overturn seemingly settled scientific conclusions.", "Improved understanding of star-planet dynamics has implications for the search for life around older stars."], "implications_short": ["Earth's long-term survival odds just improved per new stellar models.", "Better astrophysical models are overturning settled planetary science."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgFhAl6C5snFMBOsSREoSHVYUE8G6iS9DRsHgvlsfzhASaJKT56NFn4AWE6YtwGvNcVeAHumqpSr8OJIlOZDO4VTXnedrVkVDvm9pwrIhBmf_T42FdqxziJqs6jm4WizC9V1kyJfuD9GiSCUpezzziQ1fxxozlus_lrrFNRtziLMyI-vuwwnSYT_NaPS7CQwAhZ9cOWs1VGVtvFeEPx8wCEhA4skawRRgLWiX8J3V-D_QyuXPTOJ2Q-ZfW3q62N_4JGWRPVgDtKHMP2GgVScxKbybbavCrhPfHdOXSjVEJ-97LdyJODpPhB4TcL_ar_uZbmU0iyOKyQuMDHDwYKxZCHp_aIVVAaNpoAuoQ9FCI1oy/4s9/3-Tn7NwbS-ucsbzjQe71NQ/h5/h001.ZngjehottHIADfBVNVfRsb4JLu6DSKOGRpD2Mds_-2g"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-4a4e308b.png", "share_card_filename": "card-4a4e308b.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "e1201e46", "title": "OpenAI Sends GPT-5.6 to ChatGPT Work Platform", "company": "OpenAI", "themes": ["agents", "enterprise"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "OpenAI upgrades ChatGPT Work with GPT-5.6 \u2014 enabling multi-agent website and project building", "headline_x": "ChatGPT Work + Codex now runs GPT-5.6 \u2014 go from idea to working website with AI sub-agents", "why_it_matters": "ChatGPT Work with GPT-5.6 and Codex can now delegate tasks to AI sub-agents, moving from idea to working prototype in a single workflow \u2014 a preview of agentic knowledge work.", "what_happened": "OpenAI deployed GPT-5.6 models to ChatGPT Work, enabling users to build websites and manage complex projects using coordinated AI sub-agents through the Codex integration.", "implications": ["AI is moving from assistant to autonomous project executor for knowledge work tasks.", "Multi-agent coordination within a consumer product normalizes agentic workflows for non-technical users.", "OpenAI is segmenting its model lineup by tier, with GPT-5.6 anchoring the enterprise/work category."], "implications_short": ["AI can now delegate subtasks to itself \u2014 agentic work is here.", "OpenAI is building an end-to-end AI workspace, not just a chatbot."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.dSnm3kaGd0BkNqLYPjeMf022yDnKIUiG8l1A8gWu3xvT0_6b-3QHelng2u-TDy3LFtx-009HQ7BWNAHVtF6HEsuV7UuOULNLAqPrdTd66C8r_JhLBrtv-EqXhZflbiMvmbCes6iUS4_ZG4n7rSSl_i4rXMcLMqLndrOhDrhHOAivZ_eMjb8TLBbWxsLJqZ3hc76f9cbRzY9u1rCnP7L1Ce0QLn5ofG9yQdUGCrhJODN1d_F25pRUi7x2NaRDnHDg3OjqeBvJ9A4OElPzZnEltQ/4sa/mLZz2gnwRfm7NI5bK2f9ZA/h38/h001.Uc5dUqUnvC-yz0c3MG9e0LMSUJIxydpuNuNo1oMb47g", "https://link.mail.beehiiv.com/ss/c/u001.1FxDUWkbNuPKPw5uRCpR2pbhIL4eLi2oVnvqXKL3HaMu7I6uZdq8QO4IiEtX7F0C3UK_tuzoIFvrq-Ve9k8fnLFz-hfK0gjAkIWHPtVqM_OQgQ8y8ALlU83n7yfIM4VtSx7d-OMZgPPYP0tr3Cg_0v9ihCvBOaNjauMWHM0vyz-M3AJ-P0aAg3M4vEt59YlZa4pguA69gCgg_qxmf-WOwIA51qCDS4KmMqwSFGA0eHI/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h34/h001.reoEPwjG4gyeuH9suXLQ4saw1GLTIiFsKAJhIU1m_f0"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-e1201e46.png", "share_card_filename": "card-e1201e46.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "d92934c8", "title": "Melius Launches Node-Based Creative Canvas AI Agent", "company": "Melius", "themes": ["agents", "enterprise"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "Melius launches a node-based creative canvas where one prompt can regenerate your entire asset library", "headline_x": "Melius: one prompt to regenerate your entire creative canvas. Bulk AI assets just got serious.", "why_it_matters": "Melius's node-based canvas with a single-prompt full regeneration capability could eliminate the most time-consuming part of AI creative workflows: repetitive iteration and inconsistency.", "what_happened": "Melius launched a creative canvas platform where AI agent Mel can generate, regenerate, and adjust entire sets of digital assets from a single prompt, with Slack and Claude integration.", "implications": ["Bulk AI creative asset generation with agent control addresses a core enterprise creative team bottleneck.", "Slack and Claude integration lowers adoption friction by embedding into existing workflows.", "Node-based AI creative interfaces may become the new standard for scalable digital asset production."], "implications_short": ["Single-prompt canvas regeneration eliminates the biggest AI creative workflow pain point.", "Enterprise creative teams can now produce assets at scale with one instruction."]}, "source_urls": ["https://link.mail.beehiiv.com/ss/c/u001.LDkxbMa7NCxUGG7E2Yh3ADtxB5j_VEvvdyV2vYF2GDkwEH9WEOfSAT38sV2qLn0iqYrcPyIqJYhe3xvfRX58Z5Cl6e4mK9mF6UcqcYYPeIqqrK5NT1LHwImoeSRIYgupD1PqmghPVcTAO5y6Itr1V5d8jJnnqS0D1T9_xmq4hcM9gZooGI2_wk5MLLjwhlHrHEnJBWxaOO1bFOokT8bqzIjBs9MoE2uydllfMfnb2K8Vp2GR8rXxdZSw6jIyRf49/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h8/h001.86w2Q5ynzycUGFNn2EU-uIHA8hEOV0Vz2toQgKYzk-g", "https://link.mail.beehiiv.com/ss/c/u001.QR8PDET7GVRZS9oWC_jpgLqhS7hnzgmcyCHCEDGSe7hr1Zu8FO_270gDzbluUZw9rT1G-7tnLbfL-aPNP5Rd5vfnUQTtzG3KetdIo_5l1TDzwJftTEKA4rmIa53c-v4oMCPewng70ELeY4sctm5EjBv3Qat8DSWsJtTDYYb8uYlAod7oz8cjSEsaiH5kFIWilD6AFa4ZmXbyUUGFRJHl1g/4sa/F6DxTe_YS1WzzJ1vWu34Mg/h9/h001.iGmRpungb7Ol4nUEn9NbpNeecS9WRCwO9BiCP3BRDUI"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-d92934c8.png", "share_card_filename": "card-d92934c8.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "6a51f607", "title": "OpenAI May Have Fatally Misstepped in Copyright Fight", "company": "OpenAI", "themes": ["competition", "enterprise"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "OpenAI Allegedly Hid Billions of Logs \u2014 A Potential Fatal Blow in Copyright War", "headline_x": "OpenAI allegedly faked inability to search training data & hid billions of logs. This could be devastating. \ud83e\uddf5", "why_it_matters": "If proven, deliberate evidence concealment could expose OpenAI to catastrophic legal and regulatory consequences beyond the original copyright claims.", "what_happened": "Reports allege OpenAI falsely claimed it couldn't search training data and hid billions of usage logs from news organizations suing the company.", "implications": ["Could result in sanctions or adverse judgments that dramatically increase OpenAI's legal liability", "Strengthens the position of every media outlet currently suing OpenAI for copyright infringement", "May trigger regulatory investigations into OpenAI's disclosure practices and data governance"], "implications_short": ["OpenAI's legal exposure just grew exponentially across all copyright cases", "Regulatory scrutiny of OpenAI's data practices now nearly certain"]}, "source_urls": ["https://arstechnica.com/tech-policy/2026/07/openai-faked-inability-to-search-training-data-hid-billions-of-logs-nyt-says/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-6a51f607.png", "share_card_filename": "card-6a51f607.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "cfaa3d77", "title": "AI Agent Startup Lets Its Agent Run Its $100M Fundraise", "company": "Undisclosed AI Agent Startup", "themes": ["agents", "money"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "An AI Agent Just Autonomously Ran a $100M Fundraise \u2014 The Agentic Era Is Here", "headline_x": "An AI agent just ran its startup's $100M fundraise. Not a drill. \ud83e\udd16\ud83d\udcb0", "why_it_matters": "This is one of the most concrete demonstrations yet that AI agents can handle complex, high-stakes business operations autonomously.", "what_happened": "An unnamed AI agent startup allowed its own AI agent to autonomously execute its $100 million venture capital fundraising round.", "implications": ["Demonstrates that agentic AI is ready for high-stakes, complex business processes beyond simple task automation", "Raises questions about accountability and legal responsibility when AI agents execute major financial transactions", "Sets a new benchmark for AI agent capability demonstrations that other startups will feel pressure to match"], "implications_short": ["AI agents handling real business operations \u2014 including finance \u2014 is now a reality", "Accountability frameworks for autonomous AI decisions urgently needed"]}, "source_urls": ["https://techcrunch.com/2026/07/09/an-ai-agent-startup-just-let-its-agent-run-its-100-million-fundraise/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-cfaa3d77.png", "share_card_filename": "card-cfaa3d77.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "f0063fca", "title": "OpenAI Launches GPT-5.6 Family of Models", "company": "OpenAI", "themes": ["competition", "enterprise", "agi"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "OpenAI Launches GPT-5.6 Family \u2014 The Model Race Keeps Accelerating", "headline_x": "OpenAI just dropped GPT-5.6. Already the preferred model for Microsoft Copilot 365. \ud83d\udd04", "why_it_matters": "GPT-5.6 deepens OpenAI's lock-in with Microsoft's 365 ecosystem while signaling a new era of rapid, incremental model releases.", "what_happened": "OpenAI launched a new family of AI models with GPT-5.6 at the center, immediately designating it as the preferred engine for Microsoft Copilot 365.", "implications": ["Faster model iteration cycles mean enterprises must build more flexible AI integration strategies", "GPT-5.6's Copilot integration deepens Microsoft-OpenAI commercial ties despite reported tensions", "Competitors like Anthropic and Google face renewed pressure to accelerate their own model release cadences"], "implications_short": ["AI model releases are becoming more frequent \u2014 enterprise flexibility is now essential", "Microsoft-OpenAI partnership holds firm despite ongoing speculation"]}, "source_urls": ["https://techcrunch.com/2026/07/09/openai-launches-its-new-family-of-models-with-gpt-5-6/", "https://techcrunch.com/2026/07/09/openai-says-gpt-5-6-is-the-preferred-model-for-microsoft-copilot-amid-breakup-chatter/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-f0063fca.png", "share_card_filename": "card-f0063fca.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "97657818", "title": "OpenAI's No. 2 Executive Fidji Simo Steps Down", "company": "OpenAI", "themes": ["competition", "enterprise"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "OpenAI's No. 2 Executive Fidji Simo Exits \u2014 Leadership Turbulence Grows", "headline_x": "OpenAI's No. 2 just stepped down. Another leadership shake-up at the world's top AI lab. \ud83d\udc40", "why_it_matters": "Senior leadership departures at OpenAI could signal internal tensions that may affect the company's product strategy and enterprise reliability.", "what_happened": "Fidji Simo, OpenAI's top executive below Sam Altman and head of Applications, has stepped down from her role.", "implications": ["May signal strategic or cultural disagreements within OpenAI's leadership team", "Enterprise customers may question OpenAI's organizational stability during a critical growth phase", "Adds to a growing list of high-profile departures that could affect OpenAI's ability to attract top talent"], "implications_short": ["OpenAI's leadership stability is becoming a legitimate concern for enterprise partners", "Another high-profile exit adds to OpenAI's organizational turbulence narrative"]}, "source_urls": ["https://techcrunch.com/2026/07/09/fidji-simo-steps-down-from-openais-no-2-role/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-97657818.png", "share_card_filename": "card-97657818.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "4ac3d444", "title": "OpenAI Launches New Work Tool for Autonomous Collaboration", "company": "OpenAI", "themes": ["agents", "enterprise"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "OpenAI's New Work Tool Can Do Your Job \u2014 Or Do It With You", "headline_x": "OpenAI's new tool works for you AND with you. The agentic workplace is becoming real. \ud83d\udda5\ufe0f", "why_it_matters": "OpenAI is evolving from a model provider into a full workplace platform, which could disrupt enterprise software categories from project management to analytics.", "what_happened": "OpenAI launched a new work tool capable of autonomously completing tasks or collaborating interactively with users in professional settings.", "implications": ["Signals OpenAI's intent to compete directly in enterprise productivity software, not just model APIs", "Hybrid autonomous-collaborative design may accelerate enterprise adoption by reducing full-automation anxiety", "Could create tension with Microsoft, whose Copilot suite occupies similar territory"], "implications_short": ["OpenAI is now a direct competitor to enterprise software \u2014 not just an API provider", "Hybrid AI-human work models may become the dominant enterprise adoption pattern"]}, "source_urls": ["https://arstechnica.com/ai/2026/07/openai-wants-its-new-tool-to-do-your-work-for-you-and-with-you/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-4ac3d444.png", "share_card_filename": "card-4ac3d444.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "70953656", "title": "OpenAI Bets on Families With ChatGPT Home Push", "company": "OpenAI", "themes": ["competition", "enterprise"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "OpenAI Is Going After Family Households \u2014 The AI Platform Wars Expand", "headline_x": "OpenAI is betting on families. ChatGPT is coming for your living room. \ud83c\udfe0", "why_it_matters": "Household AI adoption creates deep behavioral lock-in across multiple demographics, making it a strategic battleground for platform dominance.", "what_happened": "OpenAI announced a push to expand ChatGPT into family households, targeting multiple age groups within the home.", "implications": ["Family-focused AI will accelerate regulatory attention on child safety and data privacy in AI products", "Direct competition with Amazon Alexa and Google Assistant for the household AI platform crown", "Multiple family members using ChatGPT creates powerful switching cost dynamics for OpenAI"], "implications_short": ["The household AI platform battle is now fully open \u2014 Amazon and Google face a serious challenger", "Child safety regulations for AI will likely follow quickly"]}, "source_urls": ["https://techcrunch.com/2026/07/11/openai-bets-on-families-as-chatgpt-goes-deeper-into-households/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-70953656.png", "share_card_filename": "card-70953656.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "1c3838bc", "title": "Hugging Face CEO: Companies Are Done Renting Their AI", "company": "Hugging Face", "themes": ["enterprise", "competition", "money"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "Hugging Face CEO: The Era of 'Renting AI' Is Over for Enterprises", "headline_x": "Hugging Face CEO: Companies are done renting AI. The owned AI era is starting. \ud83d\udd13", "why_it_matters": "A broad enterprise shift from AI APIs to owned models would fundamentally reshape the AI business model landscape and threaten OpenAI's and Anthropic's core revenue streams.", "what_happened": "Hugging Face's CEO publicly declared that enterprises are moving away from renting AI via APIs and toward building or owning their AI capabilities.", "implications": ["Could signal significant long-term revenue risk for API-first AI providers if the trend accelerates", "Open-source AI platforms like Hugging Face could see dramatically accelerated enterprise adoption", "Forces proprietary AI companies to differentiate more aggressively on unique capabilities that open-source can't match"], "implications_short": ["OpenAI and Anthropic's API revenue models face a genuine long-term threat", "Open-source AI is becoming a serious enterprise-grade option"]}, "source_urls": ["https://techcrunch.com/2026/07/10/hugging-faces-ceo-on-why-companies-are-done-renting-their-ai/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-1c3838bc.png", "share_card_filename": "card-1c3838bc.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "177909ab", "title": "Grok Used to Generate 7,000 Child Sex Images in Lawsuit", "company": "xAI", "themes": ["enterprise", "competition"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "Lawsuit: Grok Used to Generate 7K Child Sex Images \u2014 AI Safety Crisis Deepens", "headline_x": "Lawsuit: Grok generated 7K child sex images. xAI allegedly reported only one prompt. This is a crisis. \u26a0\ufe0f", "why_it_matters": "This case exposes catastrophic gaps in AI safety guardrails and could trigger sweeping regulatory action affecting the entire AI industry.", "what_happened": "A lawsuit alleges a man used Grok to generate 7,000 child sexual abuse images, with xAI allegedly reporting only one prompt to authorities.", "implications": ["Will likely accelerate mandatory CSAM reporting legislation specifically targeting AI companies", "Could expose xAI and potentially other AI companies to significant legal liability for harm enabled by their models", "Forces the entire AI industry to confront whether current content safety measures are remotely adequate"], "implications_short": ["AI safety regulations targeting CSAM are likely imminent across multiple jurisdictions", "xAI faces massive legal and reputational exposure from this case"]}, "source_urls": ["https://arstechnica.com/tech-policy/2026/07/lawsuit-grok-user-made-7k-child-sex-images-xai-only-reported-one-gang-rape-prompt/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-177909ab.png", "share_card_filename": "card-177909ab.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "7f8946a5", "title": "Hackers Can Use 9 Popular AI Tools to Build Massive Botnets", "company": "Multiple", "themes": ["enterprise", "competition"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "Security Alert: 9 Popular AI Tools Can Be Used to Build Massive Botnets", "headline_x": "9 of the most popular AI tools can be used by hackers to build botnets. Read this. \ud83d\udd10", "why_it_matters": "AI tools are now active cybersecurity attack vectors \u2014 not just targets \u2014 creating urgent new risks for any enterprise using popular AI software.", "what_happened": "Security researchers revealed that nine widely used AI tools contain vulnerabilities that hackers can exploit to assemble large-scale botnets.", "implications": ["Enterprise security teams must now include AI tool usage in their threat surface assessments", "AI tool developers face urgent pressure to address security vulnerabilities before regulators mandate it", "Could accelerate a new category of AI-specific cybersecurity products and services"], "implications_short": ["AI tools are now a major enterprise cybersecurity risk vector \u2014 update your threat models", "AI-specific security auditing will become a standard enterprise requirement"]}, "source_urls": ["https://arstechnica.com/security/2026/07/hackers-can-use-9-of-the-most-popular-ai-tools-to-assemble-massive-botnets/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-7f8946a5.png", "share_card_filename": "card-7f8946a5.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "168293de", "title": "Ivy League Prof Catches AI Cheating With In-Person Finals", "company": "Brown University", "themes": ["agents", "competition"], "hashtags": ["#AIAgents", "#Automation", "#AI"], "share_content": {"headline_linkedin": "Ivy League Scores Drop 50% Without AI \u2014 The Academic Cheating Crisis Is Real", "headline_x": "Brown prof bans AI on finals. Scores drop 50%. The AI cheating crisis is bigger than we thought. \ud83d\udcc9", "why_it_matters": "A 50% score collapse when AI is removed exposes how deeply AI dependency has already embedded itself in academic performance across elite institutions.", "what_happened": "A Brown University professor required in-person finals after suspecting AI cheating, resulting in a 50% drop in student scores compared to take-home work.", "implications": ["Universities will rapidly accelerate moves to in-person, proctored assessments across disciplines", "Raises fundamental questions about whether traditional academic credentials still signal genuine competence", "Could trigger institutional policy overhauls and investments in AI-detection technology at scale"], "implications_short": ["Higher education's assessment model is fundamentally broken \u2014 radical reform is coming", "AI dependency in academic work is far deeper than institutions have admitted"]}, "source_urls": ["https://arstechnica.com/ai/2026/07/we-cannot-choose-to-become-idiots-the-ai-cheating-scandal-roiling-brown-university/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-168293de.png", "share_card_filename": "card-168293de.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "40965300", "title": "EU Orders Meta to Disable Autoplay and Infinite Scroll", "company": "Meta", "themes": ["enterprise", "competition"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "EU Orders Meta to Kill Autoplay and Infinite Scroll \u2014 Regulators Now Control UX", "headline_x": "EU to Meta: Disable autoplay and infinite scroll or face massive fines. Regulators are now redesigning your apps. \ud83c\uddea\ud83c\uddfa", "why_it_matters": "The EU is now directly dictating product design decisions at major tech platforms \u2014 a dramatic escalation in the scope of digital regulation.", "what_happened": "The European Union ordered Meta to remove autoplay and infinite scroll features from its platforms under DSA enforcement, threatening heavy fines for non-compliance.", "implications": ["Sets a precedent for regulators mandating specific UX design choices at scale", "Could significantly reduce Meta's engagement metrics and advertising revenue in Europe", "TikTok, YouTube, and other scroll-dependent platforms are likely next in regulatory crosshairs"], "implications_short": ["EU regulators are now in the business of redesigning tech products \u2014 not just fining them", "Meta's engagement metrics in Europe face a serious structural threat"]}, "source_urls": ["https://arstechnica.com/tech-policy/2026/07/disable-auto-play-and-infinite-scroll-or-risk-massive-fines-eu-tells-meta/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-40965300.png", "share_card_filename": "card-40965300.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "fe60a3a3", "title": "Humanoid Robots Perform World-First Surgery on Live Pigs", "company": "Undisclosed Research Institution", "themes": ["agi", "agents"], "hashtags": ["#AGI", "#AIResearch", "#MachineLearning"], "share_content": {"headline_linkedin": "World First: Humanoid Robots Controlled by Surgeons Perform Live Surgery", "headline_x": "Surgeons just used humanoid robots to operate on live pigs. World first. Medicine will never be the same. \ud83e\udd16\ud83c\udfe5", "why_it_matters": "Humanoid robot surgery could democratize access to elite surgical expertise globally, fundamentally transforming healthcare delivery in underserved regions.", "what_happened": "Surgeons remotely controlled humanoid robots to perform what is believed to be the world's first humanoid robot surgery, conducted on live pigs.", "implications": ["Could eventually enable expert surgeons to perform operations remotely in locations without specialized medical infrastructure", "Signals humanoid robots are moving beyond industrial applications into high-precision, specialized domains", "Regulatory and ethical frameworks for autonomous or semi-autonomous robotic surgery need urgent development"], "implications_short": ["Humanoid robots are entering high-stakes specialized domains far faster than expected", "Remote surgery via humanoid robots could transform global healthcare access"]}, "source_urls": ["https://arstechnica.com/ai/2026/07/humanoid-robots-controlled-by-surgeons-did-world-first-operation-on-live-pigs/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-fe60a3a3.png", "share_card_filename": "card-fe60a3a3.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "174ff445", "title": "Google Updates Android Bench With New LLMs, Gemini Lags", "company": "Google", "themes": ["competition", "agi"], "hashtags": ["#AINews", "#TechNews", "#AI"], "share_content": {"headline_linkedin": "Google Updates Android Bench \u2014 But Gemini Still Trails Competitors on Its Own Test", "headline_x": "Google updated its Android AI benchmark. Gemini still lags behind. On Google's own test. Awkward. \ud83d\udcca", "why_it_matters": "Gemini underperforming on Google's own benchmark raises serious questions about Google's AI model competitiveness and its ability to retain developer loyalty on Android.", "what_happened": "Google revamped Android Bench with new LLMs and agents but its own Gemini model continued to lag behind competing models in the updated results.", "implications": ["Developer confidence in Gemini as the default Android AI engine may erode further", "Google may need to accelerate Gemini development or risk losing Android's AI development ecosystem to third-party models", "Highlights the growing gap between Google's AI ambitions and its current model execution"], "implications_short": ["Gemini's competitive position is weaker than Google's AI investment would suggest", "Android's AI ecosystem may evolve around third-party models if Gemini doesn't improve fast"]}, "source_urls": ["https://arstechnica.com/google/2026/07/google-revamps-android-ai-dev-benchmark-adds-fable-5-and-other-agents/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-174ff445.png", "share_card_filename": "card-174ff445.png", "ai_image_path": null, "ai_image_filename": ""}, {"id": "dfb82427", "title": "Waze Adds New AI-Powered Features and Customization", "company": "Waze / Google", "themes": ["enterprise"], "hashtags": ["#EnterpriseAI", "#B2B", "#AI"], "share_content": {"headline_linkedin": "Waze Gets AI-Powered: Navigation Apps Join the AI Feature Race", "headline_x": "Waze just added AI-powered features. Even your GPS is getting smarter. \ud83d\uddfa\ufe0f", "why_it_matters": "AI integration in everyday consumer apps like Waze signals that AI is now a baseline user expectation across all software categories, not just enterprise tools.", "what_happened": "Waze launched new AI-powered navigation features and customization options as part of a significant app update.", "implications": ["AI features in navigation apps will raise user expectations for intelligent personalization across all mobile applications", "Google deepens its AI integration across its entire product portfolio, including Waze", "Sets a benchmark that competing navigation apps like Apple Maps must match with their own AI capabilities"], "implications_short": ["AI is now table stakes for consumer apps \u2014 not a differentiator", "Apple Maps faces renewed pressure to accelerate its own AI feature set"]}, "source_urls": ["https://techcrunch.com/2026/07/13/waze-adds-new-ai-powered-features-and-customization-updates/"], "share_card_path": "/Users/Michael/Dropbox/ai-projects/ai-news-automation/share-cards/card-dfb82427.png", "share_card_filename": "card-dfb82427.png", "ai_image_path": null, "ai_image_filename": ""}];
+        const ctas = ["What's your take?", "Thoughts?", "How do you see this playing out?", "What does this mean for your work?", "Agree or disagree?", "Is this the right move?", "What's your read on this?"];
+        const hasReplicate = false;
+        let currentStory = null;
+        let currentPlatform = 'linkedin';
+        let currentLength = 'full';
+        let currentImageType = 'none';
+        const isGitHubPages = window.location.hostname.includes('github.io');
+
+        function getImageUrl(story, type) {
+            if (type === 'card') {
+                if (isGitHubPages && story.share_card_filename) return 'share-cards/' + story.share_card_filename;
+                else if (story.share_card_path) return 'file://' + story.share_card_path;
+            } else if (type === 'ai') {
+                if (isGitHubPages && story.ai_image_filename) return 'share-cards/' + story.ai_image_filename;
+                else if (story.ai_image_path) return 'file://' + story.ai_image_path;
+            }
+            return null;
+        }
+
+        function filterByTheme(theme) {
+            document.querySelectorAll('.story-card').forEach(card => {
+                card.classList.toggle('hidden', theme !== 'all' && !card.dataset.themes.includes(theme));
+            });
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function toggleInsight(header) {
+            const insight = header.parentElement;
+            const details = insight.querySelector('.insight-details');
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            insight.classList.toggle('expanded');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+            document.getElementById('copyBtn').textContent = '📋 Copy Text';
+            document.getElementById('copyBtn').classList.remove('copied');
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            currentImageType = 'none';
+        }
+
+        function setPlatform(platform) {
+            currentPlatform = platform;
+            document.querySelectorAll('.platform-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.platform-btn.' + platform).classList.add('active');
+            document.getElementById('postPreview').className = 'post-preview ' + platform;
+            renderPost();
+        }
+
+        function setLength(length) {
+            currentLength = length;
+            document.querySelectorAll('.length-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPost();
+        }
+
+        function renderPost() {
+            if (!currentStory || !currentStory.share_content) return;
+            const sc = currentStory.share_content;
+            const hashtags = currentStory.hashtags || [];
+            const cta = ctas[Math.floor(Math.random() * ctas.length)];
+            const headline = currentPlatform === 'linkedin' ? sc.headline_linkedin : sc.headline_x;
+            const implications = currentLength === 'full' ? (sc.implications || []) : (sc.implications_short || []);
+            let html = `<div class="post-headline">${headline || currentStory.title}</div>`;
+            if (currentLength === 'full') html += `<div class="post-news">${sc.what_happened || ''}</div>`;
+            if (implications.length > 0) {
+                html += '<ul class="post-implications">';
+                implications.slice(0, 3).forEach(imp => { html += `<li>${imp}</li>`; });
+                html += '</ul>';
+            }
+            html += `<div class="post-intro">My Take: ${sc.why_it_matters || ''}</div>`;
+            html += `<div class="post-cta">${cta}</div>`;
+            if (hashtags.length > 0) html += `<div class="post-hashtags">${hashtags.join(' ')}</div>`;
+            const sourceUrl = currentStory.source_urls && currentStory.source_urls[0] ? currentStory.source_urls[0] : '';
+            if (sourceUrl) html += `<div class="post-source">Link in comments ⤵️<br>${sourceUrl}</div>`;
+            document.getElementById('postPreview').innerHTML = html;
+        }
+
+        function copyToClipboard() {
+            if (!currentStory || !currentStory.share_content) return;
+            const sc = currentStory.share_content;
+            const hashtags = currentStory.hashtags || [];
+            const cta = document.querySelector('.post-cta')?.textContent || '';
+            const headline = currentPlatform === 'linkedin' ? sc.headline_linkedin : sc.headline_x;
+            const implications = currentLength === 'full' ? (sc.implications || []) : (sc.implications_short || []);
+            let text = (headline || currentStory.title) + '\n\n';
+            if (currentLength === 'full' && sc.what_happened) text += sc.what_happened + '\n\n';
+            if (implications.length > 0) {
+                implications.slice(0, 3).forEach(imp => { text += '→ ' + imp + '\n'; });
+                text += '\n';
+            }
+            text += 'My Take: ' + (sc.why_it_matters || '') + '\n\n';
+            text += cta + '\n\n';
+            if (hashtags.length > 0) text += hashtags.join(' ') + '\n\n';
+            const sourceUrl = currentStory.source_urls && currentStory.source_urls[0] ? currentStory.source_urls[0] : '';
+            if (sourceUrl) text += 'Link in comments ⤵️\n' + sourceUrl;
+            navigator.clipboard.writeText(text.trim()).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = '📋 Copy Text'; btn.classList.remove('copied'); }, 2000);
+            });
+        }
+
+        function setImageType(type) {
+            currentImageType = type;
+            document.querySelectorAll('.image-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            const container = document.getElementById('imagePreviewContainer');
+            const preview = document.getElementById('imagePreview');
+            const generateBtn = document.getElementById('generateAiBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const aiLoading = document.getElementById('aiLoading');
+            if (type === 'none') { container.style.display = 'none'; downloadBtn.style.display = 'none'; }
+            else if (type === 'card') {
+                container.style.display = 'block'; generateBtn.style.display = 'none'; aiLoading.style.display = 'none';
+                const cardUrl = getImageUrl(currentStory, 'card');
+                if (cardUrl) { preview.src = cardUrl; preview.style.display = 'block'; downloadBtn.style.display = 'block'; }
+                else { preview.style.display = 'none'; downloadBtn.style.display = 'none'; }
+            } else if (type === 'ai') {
+                container.style.display = 'block';
+                const aiUrl = getImageUrl(currentStory, 'ai');
+                if (aiUrl) { preview.src = aiUrl; preview.style.display = 'block'; generateBtn.style.display = 'none'; downloadBtn.style.display = 'block'; }
+                else {
+                    preview.style.display = 'none';
+                    generateBtn.style.display = hasReplicate && !isGitHubPages ? 'block' : 'none';
+                    downloadBtn.style.display = 'none';
+                    if (!hasReplicate && !isGitHubPages) { aiLoading.textContent = '⚠️ Replicate API not configured'; aiLoading.style.display = 'block'; }
+                    else if (isGitHubPages) { aiLoading.innerHTML = '💡 Run locally:<br><code style="background:#27272a;padding:4px 8px;border-radius:8px;font-size:0.85em;">python3 ai_news_gatherer.py --generate-ai-image ' + currentStory.id + '</code>'; aiLoading.style.display = 'block'; }
+                }
+            }
+        }
+
+        async function generateAiImage() {
+            if (!currentStory || !hasReplicate) return;
+            document.getElementById('generateAiBtn').style.display = 'none';
+            const aiLoading = document.getElementById('aiLoading');
+            aiLoading.textContent = '⏳ Generating AI image...';
+            aiLoading.style.display = 'block';
+            setTimeout(() => { aiLoading.textContent = '💡 Run: python3 ai_news_gatherer.py --generate-ai-image ' + currentStory.id; }, 2000);
+        }
+
+        function downloadImage() {
+            if (!currentStory) return;
+            let imagePath = '';
+            if (currentImageType === 'card' && currentStory.share_card_path) imagePath = currentStory.share_card_path;
+            else if (currentImageType === 'ai' && currentStory.ai_image_path) imagePath = currentStory.ai_image_path;
+            if (imagePath) {
+                const link = document.createElement('a');
+                link.href = 'file://' + imagePath;
+                link.download = 'share-image-' + currentStory.id + '.png';
+                link.click();
+            }
+        }
+
+        function openShareModal(storyId) {
+            currentStory = stories.find(s => s.id === storyId);
+            if (!currentStory) return;
+            currentImageType = 'none';
+            document.querySelectorAll('.image-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.image-btn').classList.add('active');
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            const aiBtn = document.getElementById('aiImageBtn');
+            if (!hasReplicate) { aiBtn.disabled = true; aiBtn.title = 'Replicate API not configured'; }
+            document.getElementById('shareModal').classList.add('active');
+            renderPost();
+        }
+
+        function filterTools(category) {
+            document.querySelectorAll('.tool-item').forEach(item => {
+                item.style.display = (category === 'all' || item.dataset.toolCategory === category) ? 'flex' : 'none';
+            });
+            document.querySelectorAll('.tool-filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Animate cards
+        document.querySelectorAll('.card').forEach((card, i) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => { card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)'; card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, i * 100);
+        });
+    </script>
+</body>
+</html>
